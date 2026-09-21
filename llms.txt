@@ -1,0 +1,7 @@
+# zombie-killer-tray
+
+Windows-only local tray for conservative cleanup of orphaned MCP and language
+server processes. Entrypoints: zombie_killer.py, zombie_tray.ps1 and
+start-zombie-killer-admin.bat. No network access or telemetry. Mutation safety:
+exact allowlist, two stable samples, dead-parent checks, minimum age, retained
+Win32 process handle and pre-termination audit.

@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+zombie_events.jsonl
+zombie_state.json
+zombie_tray.log
+*.tmp
+*.bak
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
