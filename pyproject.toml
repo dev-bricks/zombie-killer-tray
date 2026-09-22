@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zombie-killer-tray"
+version = "0.1.0"
+description = "Conservative Windows tray utility for cleaning up orphaned MCP and language server processes."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md"]
+authors = [
+  { name = "Lukas Geiger" }
+]
+keywords = [
+  "desktop-app",
+  "developer-tools",
+  "dev-bricks",
+  "fail-closed",
+  "language-server",
+  "local-first",
+  "mcp",
+  "open-bricks",
+  "orphan-reaper",
+  "powershell",
+  "process-hygiene",
+  "process-manager",
+  "process-supervision",
+  "python",
+  "system-tray",
+  "task-manager",
+  "win32",
+  "windows",
+  "zero-egress",
+  "zombie-killer",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Win32 (MS Windows)",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Desktop Environment",
+  "Topic :: System :: Systems Administration",
+  "Topic :: Utilities",
+]
+dependencies = [
+  "psutil>=7.2,<8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9.1.1",
+  "ruff>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/dev-bricks/zombie-killer-tray"
+Documentation = "https://github.com/dev-bricks/zombie-killer-tray#readme"
+Repository = "https://github.com/dev-bricks/zombie-killer-tray"
+Issues = "https://github.com/dev-bricks/zombie-killer-tray/issues"
+"Bug Tracker" = "https://github.com/dev-bricks/zombie-killer-tray/issues"
+Changelog = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CHANGELOG.md"
+Security = "https://github.com/dev-bricks/zombie-killer-tray/security/advisories"
+"Parent Organization" = "https://github.com/dev-bricks"
+"Umbrella Ecosystem" = "https://github.com/open-bricks"
+"Third-Party Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.md"
+Notice = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/NOTICE"
+"Marketing Log" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/MARKETING-LOG.txt"
+"LLM Ready" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/llms.txt"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = [".", "tests"]
+python_files = ["test_*.py", "*_test.py"]
+norecursedirs = [".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

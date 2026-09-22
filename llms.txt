@@ -1,7 +1,42 @@
-# zombie-killer-tray
+# Zombie Killer Tray (dev-bricks/zombie-killer-tray)
 
-Windows-only local tray for conservative cleanup of orphaned MCP and language
-server processes. Entrypoints: zombie_killer.py, zombie_tray.ps1 and
-start-zombie-killer-admin.bat. No network access or telemetry. Mutation safety:
-exact allowlist, two stable samples, dead-parent checks, minimum age, retained
-Win32 process handle and pre-termination audit.
+> Last-checked: 2026-09-22
+> Version: 0.1.0
+> Organization: dev-bricks
+> Umbrella Ecosystem: open-bricks
+> License: MIT (Attribution: NOTICE, SBOM: THIRD_PARTY_LICENSES.md)
+
+## Summary for LLMs & AI Agents
+
+Conservative Windows system tray utility for safely cleaning up orphaned Model Context Protocol (MCP) and language server background processes. It validates process incarnation, dead-parent state across two sampling intervals, CPU stability (zero delta), and a conservative minimum age threshold (30 minutes default). It retains a Win32 process handle to eliminate PID-reuse race conditions and never performs blanket `taskkill /T` process tree terminations.
+
+## Key Architectural & Governance Invariants
+
+- **INV-LOCAL-01 (100% Local-First & Zero Egress):** No network connections, telemetry, or remote dependencies.
+- **INV-SEC-02 (Unprivileged Inspection Mode):** Non-elevated preflight verification supported via `--check`.
+- **INV-PARENT-03 (Dead-Parent Verification):** Parent PID must be verified dead in both samples and immediately prior to kill.
+- **INV-STABLE-04 (Two-Sample CPU Stability):** Requires zero CPU delta between sampling rounds.
+- **INV-HANDLE-05 (PID-Reuse Protection):** Locks process object with a retained Win32 `OpenProcess` handle.
+- **INV-ALLOW-06 (Strict Allowlist):** Only exact allowlisted MCP packages and language server binaries are targeted.
+- **INV-NOTREE-07 (No Blanket Tree Kills):** Each process is verified and terminated individually; no recursive tree kills.
+- **INV-AUDIT-08 (Pre-Termination Audit Logging):** Local audit record written to `zombie_events.jsonl` before termination syscall.
+- **INV-AGE-09 (Minimum Process Age):** Default 30-minute grace period protects active tasks.
+- **INV-SLA-10 (Dual Security Response SLA):** 48h initial response, 5-business-day triage commitment.
+
+## Entry Points & Usage
+
+- `start-zombie-killer-admin.bat`: Elevated launcher for background tray application.
+- `start-zombie-killer-admin.bat --check`: Unprivileged pre-flight check of PowerShell and Python environment.
+- `zombie_tray.ps1`: Windows Forms NotifyIcon tray implementation.
+- `zombie_killer.py`: Core Win32 ctypes and psutil inspection and reaping engine.
+
+## Verification & Testing
+
+```powershell
+python -m pytest -ra -v
+python -m unittest -v test_zombie_killer
+```
+
+## Legal & Statutory Disclaimer
+
+Distributed under the MIT License. In accordance with § 521 BGB (Gefälligkeitsrecht), statutory warranty and liability are limited to intent and gross negligence.

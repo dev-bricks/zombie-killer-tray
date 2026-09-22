@@ -1,14 +1,64 @@
+# Python artifacts
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .venv/
 venv/
+
+# Build & packaging
+build/
+dist/
+*.egg-info/
+
+# Local application state & logs
 zombie_events.jsonl
 zombie_state.json
 zombie_tray.log
 *.tmp
 *.bak
+*.orig
+*.rej
+
+# Test & coverage
+.coverage*
+htmlcov/
+.tox/
+.hypothesis/
+.turbo/
+.nyc_output/
+
+# IDE & OS files
 .idea/
 .vscode/
 Thumbs.db
 Desktop.ini
+
+# Multi-host sync conflict copies
+*conflicted copy*
+* (Kopie)*
+* (Copy)*
+*-WORKSTATION*
+*-WORKSTATION-LG*
+*-ASUS*
+*-ASUS-GEI*
+*-LAPTOP*
+*-Mac Studio*
+*-MacBook*
+
+# Canonical lock system protection
+LOCK
+LOCK.*
+LOCK*.txt
+LOCK.user.*
+LOCK.until.*
+LOCK.condition.*
+LOCK.permissions.json
+.automation-lock
+
+# Package manager locks
+uv.lock
+!package-lock.json

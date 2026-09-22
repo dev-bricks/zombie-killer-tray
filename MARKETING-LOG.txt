@@ -1,0 +1,60 @@
+# MARKETING-LOG: zombie-killer-tray
+Date: 2026-09-22
+Operator: Antigravity / Gemini (via GITHUBBOT Pfad A)
+Target Repo: dev-bricks/zombie-killer-tray
+Canonical Path: C:\_Local_DEV\repos\zombie-killer-tray
+Version: 0.1.0
+
+# Audit & Action Tracking:
+# [2026-09-22 11:25:00 CEST] [GITHUBBOT_ONE_REPO_CLEANER] ACTION: PFAD_A_HYGIENE | REPO: dev-bricks/zombie-killer-tray | SCOPE: Initial Pfad A Repository Hygiene, CI/CD Hardening (.github/workflows/tests.yml with timeout-minutes: 15 & concurrency cancel-in-progress, stale.yml with actions/stale@v9 & timeout-minutes: 10, welcome.yml with actions/first-interaction@v3 & timeout-minutes: 5), multi-host cloud-sync and canonical lock protection in .gitignore, canonical Open-Source NOTICE attribution file, PEP 621 metadata standardization in pyproject.toml (version 0.1.0 frozen per T-20260920-167562623, license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md"], pytest & ruff tool configurations), Level 1 SBOM Drittanbieter-Lizenzaudit in THIRD_PARTY_LICENSES.md (Stand 2026-09-22 with 10 governance invariants INV-LOCAL-01..INV-SLA-10 and unprivileged RunAsInvoker inspection mode), Security Policy & Governance in SECURITY.md with 48h Security Response SLA and § 521 BGB statutory disclaimer, bilingual README.md & README_de.md documentation parity with badges, llms.txt context index synchronization, CHANGELOG.md unreleased section, and automated contract test suite in tests/test_metadata.py.
+
+================================================================================
+1. REPOSITORY AUDIT & HYGIENE BASELINE
+================================================================================
+- Organization: dev-bricks
+- Umbrella Ecosystem: open-bricks
+- Primary Category: Developer Tooling / Process Hygiene & Desktop Supervision
+- Core Positioning: Conservative Windows system tray utility for cleaning up orphaned Model Context Protocol (MCP) servers and language server processes without blanket process-tree kills.
+- Distinct Value Proposition: Validates process incarnation, dead-parent state across multiple samples, zero CPU activity delta, and minimum process age (30m default) with a pinned Win32 kernel handle to prevent PID-reuse race conditions. Pre-termination audit logging ensures complete auditability.
+- Sibling Ecosystem Integration: Interoperates directly with dev-bricks developer tooling (safe-start-for-codex, CareCenter-for-Codex, CodeBox, companion-for-agy), ellmos-ai infrastructure (ellmos-filecommander-mcp, ellmos-codecommander-mcp, ellmos-controlcenter-mcp, n8n-manager-mcp), and the open-bricks root ecosystem.
+
+================================================================================
+2. TARGET PERSONAS & USER JOURNEYS
+================================================================================
+1. AI Engineers & Multi-Agent Developers (Claude Code, Codex CLI, Gemini Antigravity, Kimi)
+   - Needs: Run multi-agent orchestrations and MCP servers locally on Windows without accumulating dozens of orphaned background processes that consume RAM and hold file locks.
+   - Pain Points: When agent sessions exit abruptly, MCP server subprocesses (node.exe, python.exe) remain running as zombies in the background.
+   - Solution: Conservative background detection and termination of dead-parent MCP processes with zero risk to active editors or shells.
+
+2. Windows Developers using Language Servers (rust-analyzer, clangd, gopls, pylsp)
+   - Needs: Clean development environment where language server background processes cleanly terminate when their parent IDE or editor closes.
+   - Pain Points: Lingering language servers continue holding file locks on source trees and build outputs.
+   - Solution: Allowlisted orphan reaping that only touches verified language servers whose parent editor is dead and whose CPU usage is zero.
+
+3. DevOps & System Reliability Engineers (SREs)
+   - Needs: Reliable, auditable process supervision on developer workstations and CI runners.
+   - Pain Points: Blanket `taskkill /F /T` scripts frequently terminate unrelated background services, terminal sessions, or active developer tools.
+   - Solution: Pinned Win32 handle architecture, two-sample verification, pre-termination audit records, and strict allowlists.
+
+4. Enterprise Security & Compliance Auditors
+   - Needs: Guarantee zero-egress, local-first operation, unprivileged verification options, and complete license transparency.
+   - Pain Points: Unknown background utilities that phone home or require constant unverified administrative access.
+   - Solution: 100% Local-First / Zero-Egress (INV-LOCAL-01), unprivileged `--check` mode (`RunAsInvoker` / INV-SEC-02), Level 1 SBOM in THIRD_PARTY_LICENSES.md, and codified 48-hour security response SLA (INV-SLA-10).
+
+================================================================================
+3. HIGH-INTENT SEARCH QUERIES (BILINGUAL EN & DE)
+================================================================================
+English (EN):
+- `zombie-killer-tray`
+- `windows mcp zombie process killer`
+- `safe orphaned language server cleanup windows`
+- `clean orphaned node mcp servers python`
+- `conservative windows process reaper`
+- `mcp process hygiene developer tools`
+
+Deutsch (DE):
+- `zombie-killer-tray`
+- `verwaiste mcp server prozesse beenden windows`
+- `language server prozesse bereinigen python tray`
+- `sichere prozesshygiene windows entwickler tools`
+- `mcp zombie prozesse loeschen windows`

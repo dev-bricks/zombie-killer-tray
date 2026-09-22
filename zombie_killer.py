@@ -8,7 +8,6 @@ from dataclasses import asdict, dataclass
 import json
 import os
 from pathlib import Path
-import sys
 import threading
 import time
 
@@ -126,22 +125,23 @@ class Win32:
         if h == ctypes.c_void_p(-1).value:
             raise OSError('process snapshot failed')
         try:
-            row=Entry();row.dwSize=ctypes.sizeof(row)
-            rows=[]
-            valid=self.k.Process32FirstW(h,ctypes.byref(row))
+            row = Entry()
+            row.dwSize = ctypes.sizeof(row)
+            rows = []
+            valid = self.k.Process32FirstW(h, ctypes.byref(row))
             while valid:
-                rows.append((row.pid,row.ppid,row.name))
-                valid=self.k.Process32NextW(h,ctypes.byref(row))
+                rows.append((row.pid, row.ppid, row.name))
+                valid = self.k.Process32NextW(h, ctypes.byref(row))
             if ctypes.get_last_error() != 18:
                 raise OSError('incomplete process snapshot')
             return rows
         finally:
             self.close(h)
 
-    def image(self,h):
-        text=ctypes.create_unicode_buffer(32768)
-        length=wintypes.DWORD(len(text))
-        if not self.k.QueryFullProcessImageNameW(h,0,text,ctypes.byref(length)):
+    def image(self, h):
+        text = ctypes.create_unicode_buffer(32768)
+        length = wintypes.DWORD(len(text))
+        if not self.k.QueryFullProcessImageNameW(h, 0, text, ctypes.byref(length)):
             raise OSError('process image unavailable')
         return text.value
 
@@ -157,7 +157,10 @@ class Win32:
         if not self.k.GetProcessTimes(h, ctypes.byref(created), ctypes.byref(exited),
                                       ctypes.byref(kernel), ctypes.byref(user)):
             raise OSError('GetProcessTimes failed')
-        ticks = lambda ft: (ft.dwHighDateTime << 32) | ft.dwLowDateTime
+
+        def ticks(ft):
+            return (ft.dwHighDateTime << 32) | ft.dwLowDateTime
+
         return ticks(created), ticks(kernel) + ticks(user)
 
     def alive(self, h):

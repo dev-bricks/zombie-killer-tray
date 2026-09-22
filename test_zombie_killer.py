@@ -25,7 +25,10 @@ class FakeAPI:
     def times(self, handle):
         self.reads += 1
         return self.rec.born, self.rec.cpu + int(self.late_cpu and self.reads > 1)
-    def terminate(self, handle): self.killed.append(handle); return True
+
+    def terminate(self, handle):
+        self.killed.append(handle)
+        return True
 
 
 class SafetyTests(unittest.TestCase):
@@ -140,8 +143,12 @@ class SafetyTests(unittest.TestCase):
             self.assertFalse(api.alive(h))
             p.wait(timeout=3)
         finally:
-            if h: api.close(h)
-            if p.poll() is None: p.kill();p.wait(timeout=3)
+            if h:
+                api.close(h)
+            if p.poll() is None:
+                p.kill()
+                p.wait(timeout=3)
 
 
-if __name__=='__main__': unittest.main()
+if __name__ == '__main__':
+    unittest.main()
