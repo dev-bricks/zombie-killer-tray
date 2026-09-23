@@ -21,11 +21,12 @@ keywords = [
   "language-server",
   "local-first",
   "mcp",
+  "mcp-servers",
   "open-bricks",
   "orphan-reaper",
   "powershell",
   "process-hygiene",
-  "process-manager",
+  "process-management",
   "process-supervision",
   "python",
   "system-tray",
@@ -33,7 +34,6 @@ keywords = [
   "win32",
   "windows",
   "zero-egress",
-  "zombie-killer",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",

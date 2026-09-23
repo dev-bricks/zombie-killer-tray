@@ -1,7 +1,7 @@
 # Third-Party Licenses & Transparency Notice
 
 > **Project:** `dev-bricks/zombie-killer-tray`<br>
-> **Audited:** 2026-09-22<br>
+> **Audited:** 2026-09-23<br>
 > **Repository License:** [MIT License](LICENSE)<br>
 > **Attribution Notice:** [NOTICE](NOTICE)<br>
 > **Architecture & Privacy:** 100% Local-First, Zero-Egress, Unprivileged User-Mode Inspection (`RunAsInvoker`), Win32 Retained Handle Process Termination
