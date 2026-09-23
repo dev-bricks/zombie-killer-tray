@@ -74,7 +74,12 @@ try {
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
     $notify = New-Object System.Windows.Forms.NotifyIcon
-    $notify.Icon = [System.Drawing.SystemIcons]::Shield
+    $customIcon = Join-Path $root 'assets\zombie.ico'
+    if (Test-Path -LiteralPath $customIcon) {
+        $notify.Icon = New-Object System.Drawing.Icon($customIcon)
+    } else {
+        $notify.Icon = [System.Drawing.SystemIcons]::Shield
+    }
     $notify.Text = 'Zombie-Killer: sichere Bereinigung'
     $notify.Visible = $true
     $menu = New-Object System.Windows.Forms.ContextMenuStrip
