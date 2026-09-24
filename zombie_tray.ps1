@@ -164,10 +164,20 @@ try {
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
     $notify = New-Object System.Windows.Forms.NotifyIcon
+    # The tray must never fail on the icon: Test-Path only proves the file
+    # exists, not that it is a valid icon (a truncated/corrupt asset still
+    # throws from the Icon constructor) -- fall back to the built-in Shield
+    # icon on ANY failure instead of letting $ErrorActionPreference='Stop'
+    # take the whole tray down over cosmetics.
     $customIcon = Join-Path $root 'assets\zombie.ico'
-    if (Test-Path -LiteralPath $customIcon) {
-        $notify.Icon = New-Object System.Drawing.Icon($customIcon)
-    } else {
+    try {
+        if (Test-Path -LiteralPath $customIcon) {
+            $notify.Icon = New-Object System.Drawing.Icon($customIcon)
+        } else {
+            $notify.Icon = [System.Drawing.SystemIcons]::Shield
+        }
+    } catch {
+        Write-TrayLog ('custom tray icon failed to load, using fallback: {0}' -f $_.Exception.Message)
         $notify.Icon = [System.Drawing.SystemIcons]::Shield
     }
     $notify.Text = 'Zombie-Killer: sichere Bereinigung'
