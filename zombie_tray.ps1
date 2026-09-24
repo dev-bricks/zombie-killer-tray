@@ -15,30 +15,34 @@ $timer = $null
 $menu = $null
 $currentAutomatic = $false
 $currentInterval = 1800
+$currentMinAge = 1800
 function Write-TrayLog([string]$message) {
     Add-Content -LiteralPath $log -Value ((Get-Date -Format o) + ' ' + $message) -Encoding UTF8
 }
-function Get-IntervalChoices {
-    # Single source of truth is zombie_settings.INTERVAL_CHOICES (Python) --
-    # read once at startup instead of keeping a second, driftable copy of
-    # this list in PowerShell.
+function Get-AutomodeChoices {
+    # Single source of truth is zombie_settings.py's INTERVAL_CHOICES /
+    # MIN_AGE_CHOICES -- read once at startup (one call, both lists)
+    # instead of keeping a second, driftable copy of either table here.
     $pyCode = "import sys, json; sys.path.insert(0, r'$root'); import zombie_settings as s; " +
-        "print(json.dumps([{'label': c.label, 'seconds': c.seconds} for c in s.INTERVAL_CHOICES]))"
+        "print(json.dumps({" +
+        "'interval': [{'label': c.label, 'seconds': c.seconds} for c in s.INTERVAL_CHOICES], " +
+        "'min_age': [{'label': c.label, 'seconds': c.seconds} for c in s.MIN_AGE_CHOICES]}))"
     $out = & $python -u -X utf8 -c $pyCode
     if ($LASTEXITCODE -ne 0) {
-        throw "zombie_settings.INTERVAL_CHOICES could not be read (exit $LASTEXITCODE)"
+        throw "zombie_settings choice lists could not be read (exit $LASTEXITCODE)"
     }
     return ($out | ConvertFrom-Json)
 }
-function Get-AutomodeSettings([array]$allowedSeconds) {
+function Get-AutomodeSettings([array]$allowedInterval, [array]$allowedMinAge) {
     # Fail-safe per field, mirroring zombie_settings.load_settings(): a
-    # missing file, unreadable/corrupt JSON, or an out-of-range interval
+    # missing file, unreadable/corrupt JSON, or an out-of-range value
     # each fall back to the default for that ONE field, without discarding
     # an otherwise-valid other field. This is a convenience preference, not
-    # a security gate (unlike the parent-dead/allowlist checks in
-    # zombie_killer.py, which stay fail-closed and are unchanged here).
+    # a security gate -- the hard floor (min_age >= 30s, interval >= 3s)
+    # lives in zombie_killer.py's own argument parser and is unchanged.
     $automatic = $false
     $intervalSeconds = 1800
+    $minAgeSeconds = 1800
     if (Test-Path -LiteralPath $stateFile) {
         $data = $null
         try {
@@ -48,24 +52,31 @@ function Get-AutomodeSettings([array]$allowedSeconds) {
         }
         if ($data) {
             if ($data.automatic -is [bool]) { $automatic = $data.automatic }
-            if ($null -ne $data.interval_seconds -and ($allowedSeconds -contains [int64]$data.interval_seconds)) {
+            if ($null -ne $data.interval_seconds -and ($allowedInterval -contains [int64]$data.interval_seconds)) {
                 $intervalSeconds = [int]$data.interval_seconds
+            }
+            if ($null -ne $data.min_age_seconds -and ($allowedMinAge -contains [int64]$data.min_age_seconds)) {
+                $minAgeSeconds = [int]$data.min_age_seconds
             }
         }
     }
-    return [PSCustomObject]@{ Automatic = $automatic; IntervalSeconds = $intervalSeconds }
+    return [PSCustomObject]@{ Automatic = $automatic; IntervalSeconds = $intervalSeconds; MinAgeSeconds = $minAgeSeconds }
 }
-function Save-AutomodeSettings([bool]$automatic, [int]$intervalSeconds) {
-    $payload = [PSCustomObject]@{ automatic = $automatic; interval_seconds = $intervalSeconds } |
-        ConvertTo-Json -Compress
+function Save-AutomodeSettings([bool]$automatic, [int]$intervalSeconds, [int]$minAgeSeconds) {
+    $payload = [PSCustomObject]@{
+        automatic = $automatic
+        interval_seconds = $intervalSeconds
+        min_age_seconds = $minAgeSeconds
+    } | ConvertTo-Json -Compress
     Set-Content -LiteralPath $stateFile -Value $payload -Encoding UTF8
 }
-function Start-Worker([int]$intervalSeconds) {
+function Start-Worker([int]$intervalSeconds, [int]$minAgeSeconds) {
     # A single long-lived worker preserves observed parent identities. It uses Win32
     # directly and never launches taskkill/PowerShell descendants. No redirected pipes.
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $python
-    $psi.Arguments = ('-u -X utf8 "{0}" watch --parent-pid {1} --interval {2}' -f $killer,$PID,$intervalSeconds)
+    $psi.Arguments = ('-u -X utf8 "{0}" watch --parent-pid {1} --interval {2} --min-age {3}' `
+        -f $killer,$PID,$intervalSeconds,$minAgeSeconds)
     if (-not $Preview) { $psi.Arguments += ' --yes' }
     $psi.WorkingDirectory = $root
     $psi.UseShellExecute = $false
@@ -75,7 +86,8 @@ function Start-Worker([int]$intervalSeconds) {
     $proc.StartInfo = $psi
     [void]$proc.Start()
     $script:worker = $proc
-    Write-TrayLog ('automode worker started worker_pid={0} interval={1}s preview={2}' -f $proc.Id,$intervalSeconds,$Preview)
+    Write-TrayLog ('automode worker started worker_pid={0} interval={1}s min_age={2}s preview={3}' `
+        -f $proc.Id,$intervalSeconds,$minAgeSeconds,$Preview)
 }
 function Stop-Worker {
     if ($script:worker) {
@@ -130,17 +142,24 @@ function Invoke-ManualCleanup {
     }
 }
 try {
-    $intervalChoices = Get-IntervalChoices
-    $allowedSeconds = @($intervalChoices | ForEach-Object { [int]$_.seconds })
-    $labelBySeconds = @{}
-    foreach ($choice in $intervalChoices) { $labelBySeconds[[int]$choice.seconds] = $choice.label }
+    $choices = Get-AutomodeChoices
+    $intervalChoices = $choices.interval
+    $minAgeChoices = $choices.min_age
+    $allowedInterval = @($intervalChoices | ForEach-Object { [int]$_.seconds })
+    $allowedMinAge = @($minAgeChoices | ForEach-Object { [int]$_.seconds })
+    $intervalLabelBySeconds = @{}
+    foreach ($choice in $intervalChoices) { $intervalLabelBySeconds[[int]$choice.seconds] = $choice.label }
+    $minAgeLabelBySeconds = @{}
+    foreach ($choice in $minAgeChoices) { $minAgeLabelBySeconds[[int]$choice.seconds] = $choice.label }
 
-    $settings = Get-AutomodeSettings -allowedSeconds $allowedSeconds
+    $settings = Get-AutomodeSettings -allowedInterval $allowedInterval -allowedMinAge $allowedMinAge
     $currentAutomatic = $settings.Automatic
     $currentInterval = $settings.IntervalSeconds
+    $currentMinAge = $settings.MinAgeSeconds
 
-    if ($currentAutomatic) { Start-Worker -intervalSeconds $currentInterval }
-    Write-TrayLog ('started tray_pid={0} preview={1} automatic={2} interval={3}s' -f $PID,$Preview,$currentAutomatic,$currentInterval)
+    if ($currentAutomatic) { Start-Worker -intervalSeconds $currentInterval -minAgeSeconds $currentMinAge }
+    Write-TrayLog ('started tray_pid={0} preview={1} automatic={2} interval={3}s min_age={4}s' `
+        -f $PID,$Preview,$currentAutomatic,$currentInterval,$currentMinAge)
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
@@ -150,7 +169,8 @@ try {
 
     function Update-Tooltip {
         if ($script:currentAutomatic) {
-            $script:notify.Text = ('Zombie-Killer: Automatik an ({0})' -f $script:labelBySeconds[$script:currentInterval])
+            $script:notify.Text = ('Zombie-Killer: Auto an | Intervall {0} | Alter {1}' `
+                -f $script:intervalLabelBySeconds[$script:currentInterval], $script:minAgeLabelBySeconds[$script:currentMinAge])
         } else {
             $script:notify.Text = 'Zombie-Killer: Automatik aus'
         }
@@ -175,6 +195,17 @@ try {
         $allIntervalItems += $item
     }
 
+    $minAgeMenu = New-Object System.Windows.Forms.ToolStripMenuItem('Mindestwartezeit')
+    [void]$menu.Items.Add($minAgeMenu)
+    $allMinAgeItems = @()
+    foreach ($choice in $minAgeChoices) {
+        $item = New-Object System.Windows.Forms.ToolStripMenuItem([string]$choice.label)
+        $item.Tag = [int]$choice.seconds
+        $item.Checked = ([int]$choice.seconds -eq $currentMinAge)
+        [void]$minAgeMenu.DropDownItems.Add($item)
+        $allMinAgeItems += $item
+    }
+
     $open = $menu.Items.Add(('Log ' + [char]0x00F6 + 'ffnen'))
     $quit = $menu.Items.Add('Tray beenden')
     $notify.ContextMenuStrip = $menu
@@ -186,9 +217,9 @@ try {
     $autoToggle.Add_Click({
         $script:currentAutomatic = -not $script:currentAutomatic
         $this.Checked = $script:currentAutomatic
-        Save-AutomodeSettings $script:currentAutomatic $script:currentInterval
+        Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge
         if ($script:currentAutomatic) {
-            Start-Worker -intervalSeconds $script:currentInterval
+            Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
         } else {
             Stop-Worker
         }
@@ -200,12 +231,26 @@ try {
             $selected = [int]$this.Tag
             foreach ($sibling in $allIntervalItems) { $sibling.Checked = ($sibling -eq $this) }
             $script:currentInterval = $selected
-            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval
+            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge
             Update-Tooltip
             Write-TrayLog ('automode interval set to {0}s' -f $selected)
             if ($script:currentAutomatic) {
                 Stop-Worker
-                Start-Worker -intervalSeconds $script:currentInterval
+                Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
+            }
+        })
+    }
+    foreach ($item in $allMinAgeItems) {
+        $item.Add_Click({
+            $selected = [int]$this.Tag
+            foreach ($sibling in $allMinAgeItems) { $sibling.Checked = ($sibling -eq $this) }
+            $script:currentMinAge = $selected
+            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge
+            Update-Tooltip
+            Write-TrayLog ('automode min-age set to {0}s' -f $selected)
+            if ($script:currentAutomatic) {
+                Stop-Worker
+                Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
             }
         })
     }
