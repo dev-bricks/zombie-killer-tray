@@ -1,5 +1,7 @@
 # Zombie Killer Tray
 
+![Zombie Killer Tray Banner](assets/banner.png)
+
 > Conservative Windows system tray utility for safely cleaning up orphaned Model Context Protocol (MCP) and language server processes without blanket process-tree kills.
 
 [![Attribution: NOTICE](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)

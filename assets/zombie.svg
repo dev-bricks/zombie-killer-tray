@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="60%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="iconShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#020617" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <!-- Heavy dark contour backing (ensures visibility on light and dark taskbars) -->
+  <path d="M 40 100 
+           C 40 45, 75 22, 128 22 
+           C 181 22, 216 45, 216 100 
+           C 216 122, 204 136, 204 148 
+           C 204 164, 190 234, 128 234 
+           C 66 234, 52 164, 52 148 
+           C 52 136, 40 122, 40 100 Z"
+        fill="#020617" filter="url(#iconShadow)"/>
+
+  <!-- Neck Bolts / Hardware Process Pins -->
+  <rect x="20" y="114" width="26" height="30" rx="5" fill="#64748b" stroke="#020617" stroke-width="4"/>
+  <rect x="210" y="114" width="26" height="30" rx="5" fill="#64748b" stroke="#020617" stroke-width="4"/>
+
+  <!-- Main Zombie Head Skull -->
+  <path d="M 46 102 
+           C 46 50, 80 28, 128 28 
+           C 176 28, 210 50, 210 102 
+           C 210 122, 198 136, 198 148 
+           C 198 162, 184 226, 128 226 
+           C 72 226, 58 162, 58 148 
+           C 58 136, 46 122, 46 102 Z"
+        fill="url(#skinGrad)" stroke="#052e16" stroke-width="7" stroke-linejoin="round"/>
+
+  <!-- Cyber Scar / Process Disconnect Stitch -->
+  <path d="M 148 38 L 174 72 L 158 98" fill="none" stroke="#020617" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="148" y1="52" x2="166" y2="46" stroke="#06b6d4" stroke-width="6" stroke-linecap="round"/>
+  <line x1="156" y1="74" x2="176" y2="68" stroke="#06b6d4" stroke-width="6" stroke-linecap="round"/>
+  <line x1="150" y1="92" x2="168" y2="86" stroke="#06b6d4" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Secondary Forehead Stitch (Left Temple) -->
+  <line x1="72" y1="54" x2="94" y2="44" stroke="#052e16" stroke-width="5" stroke-linecap="round"/>
+  <line x1="78" y1="42" x2="74" y2="58" stroke="#052e16" stroke-width="4" stroke-linecap="round"/>
+  <line x1="88" y1="38" x2="84" y2="54" stroke="#052e16" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Bold Eye Sockets -->
+  <rect x="66" y="94" width="48" height="50" rx="10" fill="#020617"/>
+  <rect x="142" y="94" width="48" height="50" rx="10" fill="#020617"/>
+
+  <!-- Glowing Terminal Cyan Cyber Pupils with Specular Highlight -->
+  <circle cx="90" cy="119" r="15" fill="url(#eyeGrad)"/>
+  <circle cx="95" cy="114" r="5" fill="#ffffff"/>
+
+  <circle cx="166" cy="119" r="15" fill="url(#eyeGrad)"/>
+  <circle cx="171" cy="114" r="5" fill="#ffffff"/>
+
+  <!-- Nose (Inverted Triangle) -->
+  <path d="M 128 140 L 120 156 L 136 156 Z" fill="#052e16"/>
+
+  <!-- Stitched Reaped Mouth -->
+  <path d="M 82 186 Q 128 202 174 186" fill="none" stroke="#020617" stroke-width="8" stroke-linecap="round"/>
+  <!-- Cross Stitches -->
+  <line x1="96" y1="178" x2="96" y2="198" stroke="#020617" stroke-width="6" stroke-linecap="round"/>
+  <line x1="117" y1="181" x2="117" y2="204" stroke="#020617" stroke-width="6" stroke-linecap="round"/>
+  <line x1="139" y1="181" x2="139" y2="204" stroke="#020617" stroke-width="6" stroke-linecap="round"/>
+  <line x1="160" y1="178" x2="160" y2="198" stroke="#020617" stroke-width="6" stroke-linecap="round"/>
+</svg>

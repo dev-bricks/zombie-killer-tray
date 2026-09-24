@@ -1,5 +1,7 @@
 # Zombie Killer Tray
 
+![Zombie Killer Tray Banner](assets/banner.png)
+
 > Konservatives Windows-System-Tray-Dienstprogramm zur sicheren Bereinigung verwaister Model Context Protocol (MCP) und Language-Server-Hintergrundprozesse ohne pauschale Prozessbaum-Kills.
 
 [![Attribution: NOTICE](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
