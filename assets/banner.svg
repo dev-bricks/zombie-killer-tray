@@ -129,10 +129,10 @@
   <g id="zombie-main" transform="translate(78, 68)" filter="url(#dropShadow)">
     <!-- Process Tag Card hovering above zombie -->
     <g transform="translate(0, -18)">
-      <rect x="0" y="0" width="156" height="34" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="1.5"/>
+      <rect x="0" y="0" width="165" height="34" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="1.5"/>
       <circle cx="14" cy="17" r="4" fill="#ef4444" filter="url(#neonGlow)"/>
       <text x="26" y="15" fill="#f87171" font-family="'Consolas', 'Courier New', monospace" font-size="11" font-weight="bold">PID: 4092 [ORPHAN]</text>
-      <text x="26" y="27" fill="#94a3b8" font-family="'Consolas', 'Courier New', monospace" font-size="9">Parent: DEAD (1.2 GB RAM)</text>
+      <text x="26" y="27" fill="#94a3b8" font-family="'Consolas', 'Courier New', monospace" font-size="9">Parent: DEAD (lingering)</text>
     </g>
 
     <!-- Zombie Body / Developer Hoodie -->
@@ -193,7 +193,7 @@
     <path d="M 34 75 C 34 68, 50 62, 60 62 C 70 62, 86 68, 86 75 C 86 120, 72 155, 60 175 C 48 155, 34 120, 34 75 Z"
           fill="url(#shieldGrad)"/>
 
-    <!-- White Checkmark in Shield (Safe Non-Elevated Protection) -->
+    <!-- White Checkmark in Shield (Safe Targeted Protection) -->
     <path d="M 48 105 L 56 113 L 73 95" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
 
     <!-- Cute Sentry Head / Visor -->
@@ -267,7 +267,7 @@
 
         <!-- Line 2: Detected node -->
         <text x="0" y="38" fill="#f87171" font-family="'Consolas', 'Courier New', monospace" font-size="12">  [DETECTED]</text>
-        <text x="95" y="38" fill="#e2e8f0" font-family="'Consolas', 'Courier New', monospace" font-size="12">node.exe (PID 4092) · Parent dead · 1.2 GB RAM lingering</text>
+        <text x="95" y="38" fill="#e2e8f0" font-family="'Consolas', 'Courier New', monospace" font-size="12">node.exe (PID 4092) · Parent dead · memory lingering</text>
 
         <!-- Line 3: Detected python -->
         <text x="0" y="58" fill="#fbbf24" font-family="'Consolas', 'Courier New', monospace" font-size="12">  [VERIFIED]</text>
@@ -275,34 +275,34 @@
 
         <!-- Line 4: Result -->
         <text x="0" y="78" fill="#4ade80" font-family="'Consolas', 'Courier New', monospace" font-size="12" font-weight="bold">  [REAPED]  </text>
-        <text x="95" y="78" fill="#86efac" font-family="'Consolas', 'Courier New', monospace" font-size="12">1.84 GB freed. Explorer, browser &amp; IDEs completely safe.</text>
+        <text x="95" y="78" fill="#86efac" font-family="'Consolas', 'Courier New', monospace" font-size="12">Memory freed · Active editors &amp; shells unaffected</text>
       </g>
     </g>
 
     <!-- Bottom Feature Badges -->
     <g transform="translate(0, 280)">
-      <!-- Badge 1: Zero-Egress -->
+      <!-- Badge 1: 100% Local - No Network -->
       <g transform="translate(0, 0)">
-        <rect x="0" y="0" width="165" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-        <text x="12" y="17" fill="#38bdf8" font-family="'Consolas', 'Courier New', monospace" font-size="11">🔒 100% Local Egress</text>
+        <rect x="0" y="0" width="195" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="10" y="17" fill="#38bdf8" font-family="'Consolas', 'Courier New', monospace" font-size="10.5">🔒 100% local - no network</text>
       </g>
 
-      <!-- Badge 2: Non-Elevated -->
-      <g transform="translate(175, 0)">
+      <!-- Badge 2: No Blanket Tree-Kill -->
+      <g transform="translate(205, 0)">
         <rect x="0" y="0" width="180" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-        <text x="12" y="17" fill="#34d399" font-family="'Consolas', 'Courier New', monospace" font-size="11">🛡️ RunAsInvoker Safe</text>
+        <text x="10" y="17" fill="#34d399" font-family="'Consolas', 'Courier New', monospace" font-size="10.5">🛡️ No blanket tree-kill</text>
       </g>
 
       <!-- Badge 3: Parent-Death Watch -->
-      <g transform="translate(365, 0)">
-        <rect x="0" y="0" width="185" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-        <text x="12" y="17" fill="#a78bfa" font-family="'Consolas', 'Courier New', monospace" font-size="11">⚡ Parent-Death Watch</text>
+      <g transform="translate(395, 0)">
+        <rect x="0" y="0" width="170" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="10" y="17" fill="#a78bfa" font-family="'Consolas', 'Courier New', monospace" font-size="10.5">⚡ Parent-Death Watch</text>
       </g>
 
       <!-- Badge 4: MIT License -->
-      <g transform="translate(560, 0)">
-        <rect x="0" y="0" width="170" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
-        <text x="12" y="17" fill="#cbd5e1" font-family="'Consolas', 'Courier New', monospace" font-size="11">⚖️ MIT · Open Source</text>
+      <g transform="translate(575, 0)">
+        <rect x="0" y="0" width="155" height="26" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="10" y="17" fill="#cbd5e1" font-family="'Consolas', 'Courier New', monospace" font-size="10.5">⚖️ MIT · Open Source</text>
       </g>
     </g>
   </g>
