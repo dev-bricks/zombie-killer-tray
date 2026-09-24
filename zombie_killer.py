@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import argparse
 import ctypes
-from ctypes import wintypes
-from dataclasses import asdict, dataclass
 import json
 import os
-from pathlib import Path
 import threading
 import time
+from ctypes import wintypes
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import psutil
 

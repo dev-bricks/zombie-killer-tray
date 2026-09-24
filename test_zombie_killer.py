@@ -120,9 +120,8 @@ class SafetyTests(unittest.TestCase):
         self.assertEqual(self.api.killed,[])
 
     def test_failed_audit_prevents_kill(self):
-        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z,'audit',side_effect=OSError('disk')):
-            with self.assertRaises(OSError):
-                z.cycle(self.api,apply=True,audit_path='test-unused')
+        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z,'audit',side_effect=OSError('disk')), self.assertRaises(OSError):
+            z.cycle(self.api,apply=True,audit_path='test-unused')
         self.assertEqual(self.api.killed,[])
 
     @unittest.skipUnless(os.name=='nt','Windows Win32 smoke')
@@ -136,7 +135,7 @@ class SafetyTests(unittest.TestCase):
             h=api.open(p.pid,terminate=True)
             self.assertTrue(h)
             self.assertTrue(api.alive(h))
-            born,cpu=api.times(h)
+            born,_cpu=api.times(h)
             self.assertGreater(born,0)
             self.assertFalse(api.parent_dead(os.getpid()))
             self.assertTrue(api.terminate(h))
