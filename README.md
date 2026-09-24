@@ -274,7 +274,8 @@ The tray user interface is built on PowerShell WinForms (`System.Windows.Forms.N
 - **Notification Area Icon:** Sits unobtrusively in the Windows system tray notification area.
 - **Single-Click / Double-Click Action:** Triggers an immediate inspection and safe cleanup cycle.
 - **Context Menu:**
-  - **Jetzt prüfen und veraltete MCPs bereinigen:** Manual trigger for instant orphan detection.
+  - **Jetzt prüfen und veraltete MCPs bereinigen:** Manual trigger for instant orphan detection. Available regardless of the Automatik state below.
+  - **Automatik (checkbox) + Intervall submenu:** Toggles a continuous background reap worker on/off and picks its check interval — 5/10/20/30/60 min, 3/5/10/15/20 h, or 24 h (daily); default 30 min. The choice persists locally (`zombie_state.json`, gitignored, next to the scripts) and survives a tray restart. Automatik off means no background worker runs at all — only the manual item above ever reaps.
   - **Protokoll anzeigen:** Opens the local audit log (`zombie_events.jsonl`) in the default editor.
   - **Beenden:** Gracefully shuts down the tray process without terminating any managed child processes.
 - **Windows Balloon / Toast Notifications:** Displays clear, non-intrusive feedback indicating the number of cleaned processes and freed resources.
