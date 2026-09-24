@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import zombie_killer as z
@@ -120,9 +121,8 @@ class SafetyTests(unittest.TestCase):
         self.assertEqual(self.api.killed,[])
 
     def test_failed_audit_prevents_kill(self):
-        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z,'audit',side_effect=OSError('disk')):
-            with self.assertRaises(OSError):
-                z.cycle(self.api,apply=True,audit_path='test-unused')
+        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z,'audit',side_effect=OSError('disk')), self.assertRaises(OSError):
+            z.cycle(self.api,apply=True,audit_path='test-unused')
         self.assertEqual(self.api.killed,[])
 
     @unittest.skipUnless(os.name=='nt','Windows Win32 smoke')
@@ -136,7 +136,7 @@ class SafetyTests(unittest.TestCase):
             h=api.open(p.pid,terminate=True)
             self.assertTrue(h)
             self.assertTrue(api.alive(h))
-            born,cpu=api.times(h)
+            born,_cpu=api.times(h)
             self.assertGreater(born,0)
             self.assertFalse(api.parent_dead(os.getpid()))
             self.assertTrue(api.terminate(h))
@@ -152,3 +152,31 @@ class SafetyTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WorkerSurvivalTests(unittest.TestCase):
+    """A failing cycle must not end the watch worker (tray died with rc=1)."""
+
+    def test_watch_logs_error_and_keeps_running(self):
+        import tempfile
+        from unittest import mock
+
+        calls = {'n': 0}
+
+        def flaky_cycle(*args, **kwargs):
+            calls['n'] += 1
+            if calls['n'] == 1:
+                raise OSError('transient snapshot failure')
+            raise SystemExit(0)  # stop the endless loop after the retry
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(z, 'ROOT', Path(tmp)), \
+                mock.patch.object(z, 'Win32', lambda: object()), \
+                mock.patch.object(z, 'cycle', flaky_cycle), \
+                mock.patch.object(z.time, 'sleep', lambda s: None), \
+                mock.patch('sys.argv', ['zk', 'watch', '--interval', '3']):
+            with self.assertRaises(SystemExit):
+                z.main()
+            self.assertEqual(calls['n'], 2)
+            log = (Path(tmp) / 'zombie_worker_errors.log').read_text(encoding='utf-8')
+            self.assertIn('transient snapshot failure', log)
