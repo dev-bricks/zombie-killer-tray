@@ -52,11 +52,15 @@ function Get-AutomodeSettings([array]$allowedInterval, [array]$allowedMinAge) {
         }
         if ($data) {
             if ($data.automatic -is [bool]) { $automatic = $data.automatic }
-            if ($null -ne $data.interval_seconds -and ($allowedInterval -contains [int64]$data.interval_seconds)) {
-                $intervalSeconds = [int]$data.interval_seconds
+            # Only integral JSON numbers qualify; a string or bool must fall back,
+            # not throw on the [int64] cast and take the tray down at startup.
+            $iv = $data.interval_seconds
+            if (($iv -is [int] -or $iv -is [int64]) -and ($allowedInterval -contains [int64]$iv)) {
+                $intervalSeconds = [int]$iv
             }
-            if ($null -ne $data.min_age_seconds -and ($allowedMinAge -contains [int64]$data.min_age_seconds)) {
-                $minAgeSeconds = [int]$data.min_age_seconds
+            $ma = $data.min_age_seconds
+            if (($ma -is [int] -or $ma -is [int64]) -and ($allowedMinAge -contains [int64]$ma)) {
+                $minAgeSeconds = [int]$ma
             }
         }
     }
