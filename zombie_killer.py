@@ -7,6 +7,7 @@ import json
 import os
 import threading
 import time
+import traceback
 from ctypes import wintypes
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -298,6 +299,14 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
     return outcomes
 
 
+def log_worker_error(text):
+    try:
+        with (ROOT / 'zombie_worker_errors.log').open('a', encoding='utf-8') as f:
+            f.write(f'{time.strftime("%Y-%m-%dT%H:%M:%S")} {text}\n')
+    except OSError:
+        pass
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['scan', 'reap', 'watch'])
@@ -323,11 +332,21 @@ def main():
     cache = {}
     while True:
         started = time.monotonic()
-        outcomes = cycle(api, apply=args.action != 'scan' and args.yes,
-            min_age=args.min_age, parent_cache=cache,
-            audit_path=ROOT / 'zombie_events.jsonl')
-        event = {'cycle_at': time.time(), 'apply': args.yes, 'count': len(outcomes)}
-        audit(ROOT / 'zombie_events.jsonl', event)
+        try:
+            outcomes = cycle(api, apply=args.action != 'scan' and args.yes,
+                min_age=args.min_age, parent_cache=cache,
+                audit_path=ROOT / 'zombie_events.jsonl')
+            event = {'cycle_at': time.time(), 'apply': args.yes, 'count': len(outcomes)}
+            audit(ROOT / 'zombie_events.jsonl', event)
+        except Exception:
+            # The worker runs windowless without stderr; an uncaught error used to
+            # end it with rc=1 and take the tray down. Log it and keep watching.
+            log_worker_error(traceback.format_exc())
+            if args.action != 'watch':
+                raise
+            cache.clear()
+            time.sleep(args.interval)
+            continue
         if args.action != 'watch':
             print(json.dumps({'cycle': event, 'outcomes': outcomes}), flush=True)
         if args.action != 'watch':
@@ -336,4 +355,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception:
+        log_worker_error(traceback.format_exc())
+        raise

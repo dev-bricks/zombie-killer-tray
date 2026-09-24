@@ -276,10 +276,23 @@ try {
 
     $timer = New-Object System.Windows.Forms.Timer
     $timer.Interval = 10000
+    # A crashed worker used to take the whole tray down. Restart it instead, but
+    # give up after 5 restarts within an hour so a hard fault cannot spin.
+    $script:workerRestarts = New-Object System.Collections.Generic.List[datetime]
     $timer.Add_Tick({
         if ($script:worker -and $script:worker.HasExited) {
-            Write-TrayLog ('worker exited rc={0}; no automatic restart' -f $script:worker.ExitCode)
-            [System.Windows.Forms.Application]::Exit()
+            $rc = $script:worker.ExitCode
+            $cutoff = (Get-Date).AddHours(-1)
+            $script:workerRestarts.RemoveAll([Predicate[datetime]]{ param($t) $t -lt $cutoff }) | Out-Null
+            if ($script:workerRestarts.Count -ge 5) {
+                Write-TrayLog ('worker exited rc={0}; 5 restarts within 1 h, giving up (see zombie_worker_errors.log)' -f $rc)
+                [System.Windows.Forms.Application]::Exit()
+                return
+            }
+            $script:workerRestarts.Add((Get-Date))
+            Write-TrayLog ('worker exited rc={0}; restarting ({1}/5 within 1 h)' -f $rc,$script:workerRestarts.Count)
+            Stop-Worker
+            Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
         }
     })
     $timer.Start()

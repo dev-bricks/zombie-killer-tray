@@ -18,6 +18,7 @@ dist/
 zombie_events.jsonl
 zombie_state.json
 zombie_tray.log
+zombie_worker_errors.log
 *.tmp
 *.bak
 *.orig
