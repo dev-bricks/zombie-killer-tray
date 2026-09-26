@@ -276,42 +276,78 @@ def safe_terminate(api, first, second, min_age=1800, now=None):
         api.close(h)
 
 
-def broker_descendants(table, root_pid):
-    """All pids in the process tree rooted at `root_pid` (root included).
+def _process_born(api, pid):
+    """The pid's current OS creation timestamp, or None if it cannot be
+    verified alive right now (gone, access-denied, or a query failure)."""
+    h = api.open(pid)
+    if not h:
+        return None
+    try:
+        if not api.alive(h):
+            return None
+        born, _ = api.times(h)
+        return born
+    except OSError:
+        return None
+    finally:
+        api.close(h)
+
+
+def broker_descendants(api, table, root_pid, root_born):
+    """{pid: born} for `root_pid` and every descendant whose OS-reported
+    creation time is at or after its alleged parent's.
 
     `table` is the raw (pid, ppid, name) list from Win32.process_table().
+    The born-ordering check matters on Windows: a ppid can be silently
+    reassigned once the real parent has exited (PID reuse), so a live
+    process whose `born` predates the process it appears to descend from
+    cannot actually be its child -- it is an unrelated process that merely
+    inherited a stale ppid value. Same genealogical check snapshot()
+    already applies via `parent_born <= born`.
     """
-    children = {}
+    children_of = {}
     for pid, ppid, _ in table:
-        children.setdefault(ppid, []).append(pid)
-    seen = {root_pid}
-    stack = [root_pid]
+        children_of.setdefault(ppid, []).append(pid)
+    verified = {root_pid: root_born}
+    stack = [(root_pid, root_born)]
     while stack:
-        pid = stack.pop()
-        for child in children.get(pid, ()):
-            if child not in seen:
-                seen.add(child)
-                stack.append(child)
-    return seen
+        pid, born = stack.pop()
+        for child_pid in children_of.get(pid, ()):
+            if child_pid in verified:
+                continue
+            child_born = _process_born(api, child_pid)
+            if child_born is None or child_born < born:
+                continue
+            verified[child_pid] = child_born
+            stack.append((child_pid, child_born))
+    return verified
 
 
-def _tree_cpu_ticks(api, pids):
-    """Sum of CPU ticks across every currently-alive pid in `pids`, read NOW.
+def _tree_cpu_ticks(api, verified):
+    """Sum of CPU ticks across `verified` ({pid: born}), read NOW.
 
-    A pid that has already exited contributes 0, never an error -- a
-    partially-exited tree must still be reported, not skipped. Must be
-    called at the moment the caller wants to sample, not later -- CPU ticks
-    are a live OS reading, not something recoverable in hindsight.
+    Re-checks each pid's CURRENT born against the recorded one before
+    counting it -- a pid that was reused since `verified` was built is
+    refused, not mis-summed. A pid that has exited (or any per-pid query
+    failure) contributes 0, never an error -- a partially-exited tree must
+    still be reported, not abort the whole walk. Must be called at the
+    moment the caller wants to sample, not later -- CPU ticks are a live OS
+    reading, not something recoverable in hindsight.
     """
     total = 0
-    for pid in pids:
+    for pid, born in verified.items():
         h = api.open(pid)
         if not h:
             continue
         try:
-            if api.alive(h):
-                _, cpu = api.times(h)
-                total += cpu
+            if not api.alive(h):
+                continue
+            cur_born, cpu = api.times(h)
+            if cur_born != born:
+                continue  # pid reused since verification -- not the same process
+            total += cpu
+        except OSError:
+            continue
         finally:
             api.close(h)
     return total
@@ -319,10 +355,13 @@ def _tree_cpu_ticks(api, pids):
 
 def broker_snapshot(api, table):
     """One row per currently alive codex-broker root, sampled from `table`
-    at THIS moment: {'pid', 'ppid', 'born', 'cpu', 'tree_size'}. `cpu` is the
-    summed CPU ticks of the broker's entire descendant tree, read live --
+    at THIS moment: {'pid', 'ppid', 'born', 'cwd', 'cpu', 'tree_size',
+    'members'}. `members` is the born-verified {pid: born} descendant map
+    from broker_descendants(); `cpu` is its summed CPU ticks, read live --
     call this right when `table` was captured, never after a delay (see
-    _tree_cpu_ticks).
+    _tree_cpu_ticks). `cwd` is the broker's OS working directory (the codex
+    plugin runs one broker session per workspace cwd -- see
+    detect_superseded_idle_brokers) or None if it could not be read.
     """
     rows = []
     for pid, ppid, name in table:
@@ -343,24 +382,40 @@ def broker_snapshot(api, table):
             api.close(h)
         if not is_codex_broker(exe, argv):
             continue
-        pids = broker_descendants(table, pid)
-        rows.append({'pid': pid, 'ppid': ppid, 'born': born,
-                      'cpu': _tree_cpu_ticks(api, pids), 'tree_size': len(pids)})
+        try:
+            cwd = psutil.Process(pid).cwd()
+        except (psutil.Error, OSError):
+            cwd = None
+        members = broker_descendants(api, table, pid, born)
+        rows.append({'pid': pid, 'ppid': ppid, 'born': born, 'cwd': cwd,
+                      'cpu': _tree_cpu_ticks(api, members),
+                      'tree_size': len(members), 'members': members})
     rows.sort(key=lambda r: r['born'])
     return rows
 
 
 def detect_superseded_idle_brokers(before_rows, after_rows, min_idle_seconds=600, now=None):
     """Read-only detection (TEIL A, T-20260924-303164669): a codex app-server
-    broker that has been replaced by a newer broker AND whose entire process
-    tree showed zero CPU change between `before_rows` and `after_rows` (both
-    from broker_snapshot(), taken some interval apart). NEVER terminates
-    anything -- this is display/audit only; the only kill path stays
-    safe_terminate()'s "parent dead" check.
+    broker that has been replaced by a NEWER broker FOR THE SAME workspace
+    cwd, AND whose entire process tree showed zero CPU change between
+    `before_rows` and `after_rows` (both from broker_snapshot(), taken some
+    interval apart). NEVER terminates anything -- this is display/audit
+    only; the only kill path stays safe_terminate()'s "parent dead" check.
 
-    A lone broker (nothing newer has replaced it) is never a candidate,
-    regardless of its CPU or age -- "superseded" is a precondition, not a
-    scoring factor.
+    "Superseded" is scoped per cwd, not global: the codex plugin runs one
+    broker session per workspace (`loadBrokerSession(cwd)`), so several
+    brokers for DIFFERENT cwds are normal and simultaneously active. An
+    older broker serving its own, still-open session can legitimately show
+    0 CPU while blocked waiting on a model response -- comparing it against
+    a newer broker for an unrelated cwd would misclassify active work as
+    idle (the exact T-20260816-50 failure mode). A broker whose cwd could
+    not be determined is never compared to anything and is therefore never
+    a candidate -- unresolved identity must never be treated as "same
+    session", only as "cannot confirm superseded".
+
+    A cwd with only one broker (nothing newer for that same cwd) never
+    produces a candidate, regardless of CPU or age -- "superseded" is a
+    precondition, not a scoring factor.
 
     ponytail: idle-ness is one before/after sample (mirrors eligible()'s own
     single-interval CPU-delta check), not N minutes of continuous
@@ -370,23 +425,31 @@ def detect_superseded_idle_brokers(before_rows, after_rows, min_idle_seconds=600
     addition to `min_idle_seconds` broker age.
     """
     now = time.time() if now is None else now
-    if len(after_rows) < 2:
-        return []
-    *superseded, _current = after_rows  # highest `born` = current, untouched
     before_by_pid = {r['pid']: r for r in before_rows}
+    by_cwd: dict[str, list] = {}
+    for row in after_rows:
+        if row['cwd'] is None:
+            continue  # unresolved identity -- never comparable, never a candidate
+        by_cwd.setdefault(row['cwd'], []).append(row)
     findings = []
-    for row in superseded:
-        age = now - (row['born'] / 10_000_000 - 11644473600)
-        if age < min_idle_seconds:
+    for rows in by_cwd.values():
+        if len(rows) < 2:
             continue
-        before = before_by_pid.get(row['pid'])
-        # Different `born` would mean PID reuse -- not the same incarnation.
-        if before is None or before['born'] != row['born']:
-            continue
-        if before['cpu'] != row['cpu']:
-            continue  # still doing work -- not idle, not a candidate
-        findings.append({'root_pid': row['pid'], 'root_ppid': row['ppid'],
-                          'tree_size': row['tree_size'], 'age_seconds': round(age)})
+        rows = sorted(rows, key=lambda r: r['born'])
+        *superseded, _current = rows  # highest `born` for this cwd stays untouched
+        for row in superseded:
+            age = now - (row['born'] / 10_000_000 - 11644473600)
+            if age < min_idle_seconds:
+                continue
+            before = before_by_pid.get(row['pid'])
+            # Different `born` would mean PID reuse -- not the same incarnation.
+            if before is None or before['born'] != row['born']:
+                continue
+            if before['cpu'] != row['cpu']:
+                continue  # still doing work -- not idle, not a candidate
+            findings.append({'root_pid': row['pid'], 'root_ppid': row['ppid'],
+                              'cwd': row['cwd'], 'tree_size': row['tree_size'],
+                              'age_seconds': round(age)})
     return findings
 
 
@@ -398,18 +461,16 @@ def audit(path, event):
 def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_cache=None,
           broker_min_idle=600):
     deadline = time.monotonic() + 8
-    broker_before = broker_snapshot(api, api.process_table())
+    # Cheap raw tables only, taken at the same two moments as the existing
+    # snapshot() pair -- the (expensive, psutil-heavy) broker analysis is
+    # deferred to the very end, see below.
+    table_before = api.process_table()
     first, parents = snapshot(api,deadline)
     time.sleep(interval)
-    broker_after = broker_snapshot(api, api.process_table())
+    table_after = api.process_table()
     second, current = snapshot(api,deadline)
     cache = parent_cache if parent_cache is not None else {}
     outcomes = []
-    # Read-only, independent of the kill loop below: display/log only, never
-    # terminate (see detect_superseded_idle_brokers docstring).
-    for finding in detect_superseded_idle_brokers(broker_before, broker_after, broker_min_idle):
-        if audit_path:
-            audit(audit_path, {'event': 'broker-superseded-idle', **finding})
     for pid, b in second.items():
         if time.monotonic() > deadline:
             if audit_path:
@@ -439,6 +500,23 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
             next_cache[key] = parent
     cache.clear()
     cache.update(next_cache)
+
+    # Broker detection runs LAST and is fully isolated from everything above:
+    # it must never delay or affect the parent-dead reap loop (budget: its
+    # psutil.Process(pid).cmdline()/.cwd() calls happen only now, after the
+    # loop already used what it needed of the 8s deadline), and a failure in
+    # it (e.g. a descendant vanishing mid-walk) must never abort a cycle that
+    # has, by this point, already completed its real work.
+    try:
+        broker_before = broker_snapshot(api, table_before)
+        broker_after = broker_snapshot(api, table_after)
+        for finding in detect_superseded_idle_brokers(broker_before, broker_after, broker_min_idle):
+            if audit_path:
+                audit(audit_path, {'event': 'broker-superseded-idle', **finding})
+    except (OSError, psutil.Error) as exc:
+        if audit_path:
+            audit(audit_path, {'event': 'broker-detection-error', 'error': repr(exc)})
+
     return outcomes
 
 
@@ -451,24 +529,31 @@ def kill_broker_tree(api, root_pid, min_idle_seconds=600):
     acting -- never trusts a detection result from an earlier cycle, in case
     the broker started doing work again in the meantime.
     """
-    table_before = api.process_table()
-    broker_before = broker_snapshot(api, table_before)
+    broker_before = broker_snapshot(api, api.process_table())
     time.sleep(2.0)
-    table_after = api.process_table()
-    broker_after = broker_snapshot(api, table_after)
+    broker_after = broker_snapshot(api, api.process_table())
     findings = detect_superseded_idle_brokers(broker_before, broker_after, min_idle_seconds)
     if not any(f['root_pid'] == root_pid for f in findings):
         return [], 'not-a-verified-candidate'
-    pids = broker_descendants(table_after, root_pid)
-    order = sorted(pids - {root_pid}) + [root_pid]  # children before the root
+    row = next(r for r in broker_after if r['pid'] == root_pid)
+    members = row['members']  # born-verified {pid: born}, see broker_descendants
+    order = sorted(pid for pid in members if pid != root_pid) + [root_pid]  # children before the root
     killed = []
     for pid in order:
+        expected_born = members[pid]
         h = api.open(pid, terminate=True)
         if not h:
             continue
         try:
-            if api.alive(h) and api.terminate(h):
+            if not api.alive(h):
+                continue
+            cur_born, _ = api.times(h)
+            if cur_born != expected_born:
+                continue  # pid was reused between detection and this handle -- refuse
+            if api.terminate(h):
                 killed.append(pid)
+        except OSError:
+            continue
         finally:
             api.close(h)
     return killed, 'killed'
