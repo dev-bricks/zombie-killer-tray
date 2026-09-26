@@ -333,6 +333,16 @@ python zombie_killer.py --cycle
 python zombie_killer.py --cycle --min-age 900
 ```
 
+### 4. As an Installed Package (for embedding consumers)
+
+Since T-20260926-212716751, the implementation is also an installable package (`src/zombie_killer_tray/`, distribution name `zombie-killer-tray`, same CLI actions and flags):
+
+```bash
+python -m zombie_killer_tray watch --parent-pid <pid> --interval 600
+```
+
+`zombie_killer.py`/`zombie_settings.py` at the repository root are unchanged, thin wrapper scripts kept for `zombie_tray.ps1`/`start-zombie-killer-admin.bat` and any existing scheduled task that calls them directly — no migration needed for the tray. Either way, the local runtime state (`zombie_events.jsonl`, `zombie_worker_errors.log`) is written to the **process's current working directory**, not to wherever the script/package physically lives — the tray already sets this explicitly (`WorkingDirectory` = repo root); an embedding consumer gets to choose its own state location the same way, by setting its own subprocess `cwd`.
+
 ---
 
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
