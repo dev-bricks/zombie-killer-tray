@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import zombie_settings as s
+import zombie_killer_tray.settings as s
 
 
 class IntervalChoicesTests(unittest.TestCase):

@@ -333,6 +333,16 @@ python zombie_killer.py --cycle
 python zombie_killer.py --cycle --min-age 900
 ```
 
+### 4. Als installiertes Paket (für einbettende Konsumenten)
+
+Seit T-20260926-212716751 ist die Implementierung zusätzlich ein installierbares Paket (`src/zombie_killer_tray/`, Distributionsname `zombie-killer-tray`, dieselben CLI-Aktionen und -Flags):
+
+```bash
+python -m zombie_killer_tray watch --parent-pid <pid> --interval 600
+```
+
+`zombie_killer.py`/`zombie_settings.py` im Repo-Root bleiben unverändert bestehen -- duenne Wrapper-Skripte fuer `zombie_tray.ps1`/`start-zombie-killer-admin.bat` und jeden bestehenden Scheduled Task, der sie direkt aufruft; keine Migration noetig fuer den Tray. In beiden Faellen landet der lokale Laufzeitzustand (`zombie_events.jsonl`, `zombie_worker_errors.log`) im **aktuellen Arbeitsverzeichnis des Prozesses**, nicht dort, wo das Skript/Paket physisch liegt -- der Tray setzt das bereits explizit (`WorkingDirectory` = Repo-Root); ein einbettender Konsument waehlt seinen eigenen Zustandsort auf demselben Weg, ueber sein eigenes Subprozess-`cwd`.
+
 ---
 
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>

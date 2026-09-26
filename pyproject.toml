@@ -73,11 +73,18 @@ Notice = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/NOTICE"
 "Marketing Log" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/MARKETING-LOG.txt"
 "LLM Ready" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/llms.txt"
 
+[tool.hatch.build.targets.wheel]
+# Explicit rather than relying on hatchling's project-name autodetection
+# (T-20260926-212716751): the repo root also carries the backward-compat
+# zombie_killer.py/zombie_settings.py wrapper scripts, which must NOT ship
+# inside the wheel -- only the real package under src/ does.
+packages = ["src/zombie_killer_tray"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = [".", "tests"]
 python_files = ["test_*.py", "*_test.py"]
-norecursedirs = [".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv"]
+norecursedirs = [".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv", "src"]
 
 [tool.ruff]
 line-length = 100
