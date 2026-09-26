@@ -275,12 +275,14 @@ The tray user interface is built on PowerShell WinForms (`System.Windows.Forms.N
 
 - **Notification Area Icon:** Sits unobtrusively in the Windows system tray notification area.
 - **Single-Click / Double-Click Action:** Triggers an immediate inspection and safe cleanup cycle.
-- **Context Menu:**
-  - **Jetzt prüfen und veraltete MCPs bereinigen:** Manual trigger for instant orphan detection. Available regardless of the Automatik state below.
-  - **Automatik (checkbox) + Intervall submenu:** Toggles a continuous background reap worker on/off and picks its check interval — 5/10/20/30/60 min, 3/5/10/15/20 h, or 24 h (daily); default 30 min. Automatik off means no background worker runs at all — only the manual item above ever reaps.
-  - **Mindestwartezeit submenu:** How long a candidate process must already have been orphaned (`zombie_killer.py`'s `--min-age`) before it becomes eligible for termination — 5/10/15/30/60 min or 2/6/12/24 h; default 30 min (unchanged from the prior hardcoded value). Both choices persist locally (`zombie_state.json`, gitignored, next to the scripts) and survive a tray restart; the hard floor in `zombie_killer.py` itself (`min_age >= 30s`, `interval >= 3s`) is unaffected — this menu only narrows the offered range.
-  - **Protokoll anzeigen:** Opens the local audit log (`zombie_events.jsonl`) in the default editor.
-  - **Beenden:** Gracefully shuts down the tray process without terminating any managed child processes.
+- **Bilingual UI (English / German):** The tray menu, tooltip, and toggle labels follow the Windows UI language at first start (German if the system locale is German, English otherwise) and can be switched anytime via the **Language / Sprache** submenu below; the choice persists in `zombie_state.json` and survives a tray restart. The audit trail (`zombie_events.jsonl`) and diagnostic log (`zombie_tray.log`) stay English regardless — they are a technical event schema, not conversational UI text.
+- **Context Menu (English shown; see above for German):**
+  - **Check now and clean up stale MCPs:** Manual trigger for instant orphan detection. Available regardless of the Automatic state below.
+  - **Automatic (checkbox) + Interval submenu:** Toggles a continuous background reap worker on/off and picks its check interval — 5/10/20/30/60 min, 3/5/10/15/20 h, or 24 h (daily); default 30 min. Automatic off means no background worker runs at all — only the manual item above ever reaps.
+  - **Minimum age submenu:** How long a candidate process must already have been orphaned (`zombie_killer.py`'s `--min-age`) before it becomes eligible for termination — 5/10/15/30/60 min or 2/6/12/24 h; default 30 min (unchanged from the prior hardcoded value). Both choices persist locally (`zombie_state.json`, gitignored, next to the scripts) and survive a tray restart; the hard floor in `zombie_killer.py` itself (`min_age >= 30s`, `interval >= 3s`) is unaffected — this menu only narrows the offered range.
+  - **Language submenu (German / English):** Switches the tray's own UI language immediately, without a restart.
+  - **Open log:** Opens the local diagnostic log (`zombie_tray.log`) in the default editor.
+  - **Quit tray:** Gracefully shuts down the tray process without terminating any managed child processes.
 - **Windows Balloon / Toast Notifications:** Displays clear, non-intrusive feedback indicating the number of cleaned processes and freed resources.
 
 ---

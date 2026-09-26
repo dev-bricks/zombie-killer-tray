@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Bilingual tray UI (English / German, T-20260926-368033290): menu, tooltip, and toggle labels follow the Windows UI language at startup and switch instantly via a new **Language / Sprache** submenu, persisted in `zombie_state.json`. The audit trail and diagnostic log stay English (technical event data, not UI prose).
 - Read-only `broker-report` action and background detection (in `watch`/`scan`/`reap`) for superseded, idle `codex@openai-codex` app-server-broker processes (T-20260924-303164669): the plugin's own `ensureBrokerSession` never kills an old broker when it spawns a replacement, only its session files, so these can accumulate. Detection is scoped per workspace cwd and CPU-gated so an older broker still legitimately blocked on a model response is never flagged; `track_broker_idle_streaks()` additionally requires the same idle reading to hold across several separately-sampled cycles (a real, cumulative multi-minute span) before marking a finding `confirmed`. Display/audit only — the existing "parent dead" kill criterion (T-20260816-50) is untouched and this detection never terminates anything.
 
 ### Fixed
