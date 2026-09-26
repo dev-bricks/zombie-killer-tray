@@ -25,6 +25,7 @@ MCP_PACKAGES = frozenset({'ellmos-filecommander-mcp', 'ellmos-codecommander-mcp'
 PYTHON_MODULES = frozenset({'pylsp', 'jedi_language_server', 'mcp_server_git',
     'mcp_server_fetch', 'mcp_server_time'})
 ROOT = Path(__file__).resolve().parent
+BROKER_REPORT_SAMPLES = 3  # must match track_broker_idle_streaks()'s default min_streak
 
 
 def classify(exe: str, argv: list[str]) -> str:
@@ -449,7 +450,38 @@ def detect_superseded_idle_brokers(before_rows, after_rows, min_idle_seconds=600
                 continue  # still doing work -- not idle, not a candidate
             findings.append({'root_pid': row['pid'], 'root_ppid': row['ppid'],
                               'cwd': row['cwd'], 'tree_size': row['tree_size'],
-                              'age_seconds': round(age)})
+                              'age_seconds': round(age), 'cpu': row['cpu']})
+    return findings
+
+
+def track_broker_idle_streaks(findings, streak_state, min_streak=3):
+    """Upgrade path taken (review finding B, T-20260924-303164669): a single
+    before/after sample -- even with a real `interval` gap -- can still land
+    inside a broker's own idle stretch between two model-turn network calls,
+    which looks identical to "abandoned". Requiring the SAME (unchanged) cpu
+    reading across several separate cycle() calls (`min_streak`, each its own
+    fresh `interval`-spaced sample) needs the broker to have done zero work
+    for a much longer, cumulative real-world span before being reported as
+    confirmed -- exactly the "Zustand ueber Zyklen halten" the review asked
+    for. A single cpu tick of activity anywhere in that span resets the count.
+
+    `streak_state` is mutated in place (same pattern as `parent_cache`):
+    {(cwd, root_pid): {'cpu': int, 'streak': int}}, rebuilt to hold only the
+    keys seen in THIS cycle's `findings` -- a candidate that stops appearing
+    (process gone, or no longer superseded/idle) loses its progress instead
+    of resuming a stale count later under a coincidentally-matching cpu.
+
+    Returns `findings` with a `confirmed` key added to each entry.
+    """
+    next_state = {}
+    for finding in findings:
+        key = (finding['cwd'], finding['root_pid'])
+        prior = streak_state.get(key)
+        streak = prior['streak'] + 1 if prior and prior['cpu'] == finding['cpu'] else 1
+        next_state[key] = {'cpu': finding['cpu'], 'streak': streak}
+        finding['confirmed'] = streak >= min_streak
+    streak_state.clear()
+    streak_state.update(next_state)
     return findings
 
 
@@ -459,7 +491,7 @@ def audit(path, event):
 
 
 def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_cache=None,
-          broker_min_idle=600):
+          broker_min_idle=600, broker_idle_state=None):
     deadline = time.monotonic() + 8
     # Cheap raw tables only, taken at the same two moments as the existing
     # snapshot() pair -- the (expensive, psutil-heavy) broker analysis is
@@ -510,7 +542,9 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
     try:
         broker_before = broker_snapshot(api, table_before)
         broker_after = broker_snapshot(api, table_after)
-        for finding in detect_superseded_idle_brokers(broker_before, broker_after, broker_min_idle):
+        findings = detect_superseded_idle_brokers(broker_before, broker_after, broker_min_idle)
+        streaks = broker_idle_state if broker_idle_state is not None else {}
+        for finding in track_broker_idle_streaks(findings, streaks):
             if audit_path:
                 audit(audit_path, {'event': 'broker-superseded-idle', **finding})
     except (OSError, psutil.Error) as exc:
@@ -518,45 +552,6 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
             audit(audit_path, {'event': 'broker-detection-error', 'error': repr(exc)})
 
     return outcomes
-
-
-def kill_broker_tree(api, root_pid, min_idle_seconds=600):
-    """Opt-in MANUAL termination of one superseded, idle codex-broker tree
-    (Tray-Menu action / explicit CLI call, per T-20260924-303164669 -- never
-    invoked from the automatic scan/reap/watch cycle).
-
-    Re-verifies the candidate FRESH (two brand-new samples) right before
-    acting -- never trusts a detection result from an earlier cycle, in case
-    the broker started doing work again in the meantime.
-    """
-    broker_before = broker_snapshot(api, api.process_table())
-    time.sleep(2.0)
-    broker_after = broker_snapshot(api, api.process_table())
-    findings = detect_superseded_idle_brokers(broker_before, broker_after, min_idle_seconds)
-    if not any(f['root_pid'] == root_pid for f in findings):
-        return [], 'not-a-verified-candidate'
-    row = next(r for r in broker_after if r['pid'] == root_pid)
-    members = row['members']  # born-verified {pid: born}, see broker_descendants
-    order = sorted(pid for pid in members if pid != root_pid) + [root_pid]  # children before the root
-    killed = []
-    for pid in order:
-        expected_born = members[pid]
-        h = api.open(pid, terminate=True)
-        if not h:
-            continue
-        try:
-            if not api.alive(h):
-                continue
-            cur_born, _ = api.times(h)
-            if cur_born != expected_born:
-                continue  # pid was reused between detection and this handle -- refuse
-            if api.terminate(h):
-                killed.append(pid)
-        except OSError:
-            continue
-        finally:
-            api.close(h)
-    return killed, 'killed'
 
 
 def log_worker_error(text):
@@ -569,13 +564,11 @@ def log_worker_error(text):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['scan', 'reap', 'watch', 'broker-report', 'kill-broker'])
+    parser.add_argument('action', choices=['scan', 'reap', 'watch', 'broker-report'])
     parser.add_argument('--yes', action='store_true')
     parser.add_argument('--interval', type=float, default=10)
     parser.add_argument('--min-age', type=float, default=1800)
     parser.add_argument('--broker-min-idle', type=float, default=600)
-    parser.add_argument('--broker-pid', type=int,
-        help='root pid for kill-broker (opt-in manual termination, requires --yes)')
     parser.add_argument('--parent-pid', type=int)
     args = parser.parse_args()
     if args.action in ('scan', 'reap', 'watch') and (args.min_age < 30 or args.interval < 3):
@@ -583,21 +576,28 @@ def main():
     api = Win32()
 
     if args.action == 'broker-report':
-        # Standardmaessig nur anzeigen: read-only, keine Terminierung.
-        broker_before = broker_snapshot(api, api.process_table())
-        time.sleep(2.0)
-        broker_after = broker_snapshot(api, api.process_table())
-        findings = detect_superseded_idle_brokers(broker_before, broker_after, args.broker_min_idle)
+        # Read-only, display only -- there is no kill-broker action (review
+        # finding B, T-20260924-303164669): reliably telling apart a
+        # superseded, abandoned broker from one merely blocked waiting on a
+        # model response would require resolving the codex plugin's OWN
+        # broker.json/jobs bookkeeping (workspace-root git resolution +
+        # internal hashing), which is not reliably reproducible from outside
+        # the plugin -- so termination stays out of scope and this command
+        # only ever detects/reports. `BROKER_REPORT_SAMPLES` real,
+        # `interval`-spaced samples feed `track_broker_idle_streaks()` so a
+        # one-shot report already reflects the same multi-cycle confirmation
+        # the watch loop accumulates over time.
+        streak_state = {}
+        findings = []
+        previous = broker_snapshot(api, api.process_table())
+        for _ in range(BROKER_REPORT_SAMPLES):
+            time.sleep(2.0)
+            current = broker_snapshot(api, api.process_table())
+            findings = track_broker_idle_streaks(
+                detect_superseded_idle_brokers(previous, current, args.broker_min_idle),
+                streak_state)
+            previous = current
         print(json.dumps({'findings': findings}), flush=True)
-        return
-
-    if args.action == 'kill-broker':
-        if not args.broker_pid or not args.yes:
-            parser.error('kill-broker requires --broker-pid and --yes (opt-in only)')
-        killed, reason = kill_broker_tree(api, args.broker_pid, args.broker_min_idle)
-        audit(ROOT / 'zombie_events.jsonl', {'event': 'broker-manual-kill',
-            'root_pid': args.broker_pid, 'killed_pids': killed, 'reason': reason})
-        print(json.dumps({'killed_pids': killed, 'reason': reason}), flush=True)
         return
 
     if args.parent_pid:
@@ -612,11 +612,13 @@ def main():
             os._exit(0)
         threading.Thread(target=watch_parent, daemon=True).start()
     cache = {}
+    broker_state = {}
     while True:
         started = time.monotonic()
         try:
             outcomes = cycle(api, apply=args.action != 'scan' and args.yes,
                 min_age=args.min_age, parent_cache=cache,
+                broker_min_idle=args.broker_min_idle, broker_idle_state=broker_state,
                 audit_path=ROOT / 'zombie_events.jsonl')
             event = {'cycle_at': time.time(), 'apply': args.yes, 'count': len(outcomes)}
             audit(ROOT / 'zombie_events.jsonl', event)
@@ -627,6 +629,7 @@ def main():
             if args.action != 'watch':
                 raise
             cache.clear()
+            broker_state.clear()
             time.sleep(args.interval)
             continue
         if args.action != 'watch':

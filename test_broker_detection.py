@@ -1,20 +1,40 @@
 """Tests for the codex-broker detection added for T-20260924-303164669.
 
 Covers: is_codex_broker() classification, broker_descendants() genealogy
-walk, broker_snapshot()/detect_superseded_idle_brokers() (read-only, TEIL
-A), kill_broker_tree() (opt-in manual action), and -- critically -- that
-none of this feeds the existing automatic eligible()/safe_terminate() kill
-path (Auflage T-20260816-50: kill criterion stays exclusively "parent
-dead").
+walk, broker_snapshot()/detect_superseded_idle_brokers()/
+track_broker_idle_streaks() (read-only detect/report only -- see below),
+and -- critically -- that none of this feeds the existing automatic
+eligible()/safe_terminate() kill path (Auflage T-20260816-50: kill criterion
+stays exclusively "parent dead").
 
-Also covers the four blocking review findings on PR #3 (head fc6a5a6):
-1. kill_broker_tree must refuse a pid reused between verification and kill.
+Also covers the review findings on PR #3 (head fc6a5a6, then 04735c9):
+1. (fixed in 04735c9, superseded by the point below) a kill_broker_tree()
+   pid-reuse refusal -- the function itself was later REMOVED, see 5.
 2. broker_descendants must ignore a child whose born predates its alleged
    parent (stale/reassigned ppid).
 3. "superseded" must be scoped per cwd, not global (the plugin runs one
    broker per workspace; several concurrently active brokers are normal).
 4. A per-pid times() failure inside broker detection must never abort
    cycle() (and therefore never affect the parent-dead reap loop).
+5. Two further findings on 04735c9 -- (A) cycle()'s broker before/after
+   pair used to be sampled back-to-back with ~0 real time between them
+   (CPU delta always ~0, so almost every broker looked idle); it is now
+   taken across the SAME real `interval` gap the reap loop already sleeps
+   for (see table_before/table_after in cycle()). (B) a broker that failed
+   its 150ms endpoint-ready check is superseded but NEVER killed by the
+   codex plugin itself (ensureBrokerSession's teardown only removes its
+   session files, not the process -- see broker-lifecycle.mjs), so it can
+   still be doing real work (blocked on a model response = ~0 CPU) when a
+   single before/after sample catches it. Reliably telling that apart from
+   "actually abandoned" would need the plugin's OWN broker.json/jobs
+   bookkeeping, which requires reproducing its workspace-root git
+   resolution and internal hashing from outside the plugin -- not reliably
+   resolvable here. Per the decided fallback for that case, kill_broker_tree()
+   and the `kill-broker` CLI action were REMOVED (detect/report only from
+   here on); what remains is track_broker_idle_streaks(), which requires
+   the SAME idle reading to hold across several separately-sampled cycle()
+   calls (a real, cumulative multi-minute span) before a finding is marked
+   `confirmed` -- raising confidence without ever acting on it.
 """
 import time
 import unittest
@@ -130,8 +150,8 @@ class BrokerDescendantsTests(unittest.TestCase):
         """Regression (review finding 2): a live pid whose ppid points at our
         root but whose OWN born predates the root's cannot really be its
         child -- e.g. an unrelated process that inherited a stale, reused
-        ppid after the real parent died. It must be excluded from the tree,
-        the CPU sum, and (via kill_broker_tree) the kill set."""
+        ppid after the real parent died. It must be excluded from the tree
+        and the reported CPU sum."""
         root_born = ft(-100)
         procs = {
             1: {'ppid': 0, 'name': 'node.exe', 'born': root_born, 'cpu': 0, 'exe': '', 'alive': True},
@@ -313,75 +333,63 @@ class BrokerDetectionIsolationTests(unittest.TestCase):
         self.assertTrue(outcomes and outcomes[0]['killed'])  # the reap loop still ran
 
 
-class KillBrokerTreeTests(unittest.TestCase):
-    def test_refuses_to_kill_a_pid_that_is_not_a_verified_candidate(self):
-        api = FakeMultiAPI({20: {'ppid': 1, 'name': 'node.exe', 'born': ft(-5),
-                                  'cpu': 1, 'exe': BROKER_EXE, 'alive': True}})
-        with patch.object(z.psutil, 'Process', FakeCmdline({20: BROKER_ARGV})), \
-             patch.object(z.time, 'sleep'):
-            killed, reason = z.kill_broker_tree(api, root_pid=10)
-        self.assertEqual(killed, [])
-        self.assertEqual(reason, 'not-a-verified-candidate')
-        self.assertEqual(api.terminated, [])
+class TrackBrokerIdleStreaksTests(unittest.TestCase):
+    """kill_broker_tree() and the `kill-broker` CLI action were removed
+    (review finding B on PR #3, T-20260924-303164669) -- see the module
+    docstring point 5. What replaced the "act on it" side is this: a
+    finding is only ever marked `confirmed` once the SAME cpu reading has
+    held across several separately-sampled cycle() calls."""
 
-    def test_kills_children_before_root_for_a_verified_candidate(self):
-        procs = {
-            10: {'ppid': 1, 'name': 'node.exe', 'born': ft(-3600), 'cpu': 42,
-                 'exe': BROKER_EXE, 'alive': True},
-            11: {'ppid': 10, 'name': 'python.exe', 'born': ft(-3599), 'cpu': 5,
-                 'exe': 'C:/python.exe', 'alive': True},
-            20: {'ppid': 1, 'name': 'node.exe', 'born': ft(-5), 'cpu': 1,
-                 'exe': BROKER_EXE, 'alive': True},
-        }
-        api = FakeMultiAPI(procs)
-        with patch.object(z.psutil, 'Process', FakeCmdline({10: BROKER_ARGV, 20: BROKER_ARGV})), \
-             patch.object(z.time, 'sleep'):
-            killed, reason = z.kill_broker_tree(api, root_pid=10, min_idle_seconds=600)
-        self.assertEqual(reason, 'killed')
-        self.assertEqual(killed, [11, 10])  # child before root
-        self.assertEqual(api.terminated, [11, 10])
-        self.assertTrue(api.procs[20]['alive'])  # the CURRENT broker is untouched
+    def _finding(self, root_pid, cpu, cwd='C:/ws'):
+        return {'root_pid': root_pid, 'root_ppid': 1, 'cwd': cwd,
+                'tree_size': 1, 'age_seconds': 3600, 'cpu': cpu}
 
-    def test_refuses_to_kill_a_descendant_whose_pid_was_reused_before_terminate(self):
-        """Regression (review finding 1): kill_broker_tree must re-verify
-        `born` on the freshly opened terminate-handle before calling
-        terminate(), exactly like safe_terminate() does for the single-
-        process case -- a descendant that exited and had its pid reused
-        between detection and the kill loop must be refused, not
-        terminated as if it were still the original process."""
-        procs = {
-            10: {'ppid': 1, 'name': 'node.exe', 'born': ft(-3600), 'cpu': 42,
-                 'exe': BROKER_EXE, 'alive': True},
-            11: {'ppid': 10, 'name': 'python.exe', 'born': ft(-3599), 'cpu': 5,
-                 'exe': 'C:/python.exe', 'alive': True},
-            20: {'ppid': 1, 'name': 'node.exe', 'born': ft(-5), 'cpu': 1,
-                 'exe': BROKER_EXE, 'alive': True},  # newer broker -> 10 is superseded
-        }
-        api = FakeMultiAPI(procs)
+    def test_not_confirmed_before_min_streak_is_reached(self):
+        state = {}
+        for _ in range(2):
+            findings = z.track_broker_idle_streaks([self._finding(10, cpu=42)], state,
+                                                     min_streak=3)
+        self.assertFalse(findings[0]['confirmed'])
 
-        real_open = api.open
-        opened_once = {'done': False}
+    def test_confirmed_once_min_streak_of_unchanged_cpu_is_reached(self):
+        state = {}
+        for _ in range(3):
+            findings = z.track_broker_idle_streaks([self._finding(10, cpu=42)], state,
+                                                     min_streak=3)
+        self.assertTrue(findings[0]['confirmed'])
 
-        def open_with_pid_reuse(pid, terminate=False):
-            # Simulate pid 11 exiting and an unrelated process reusing it
-            # with a different `born`, right before the terminate-handle is
-            # opened (born changes, everything else about the fake process
-            # stays "alive" so only the born-mismatch can catch this).
-            if pid == 11 and terminate and not opened_once['done']:
-                opened_once['done'] = True
-                procs[11]['born'] = ft(-1)  # different incarnation now
-            return real_open(pid, terminate)
+    def test_a_cpu_change_resets_the_streak(self):
+        state = {}
+        z.track_broker_idle_streaks([self._finding(10, cpu=42)], state, min_streak=3)
+        z.track_broker_idle_streaks([self._finding(10, cpu=42)], state, min_streak=3)
+        # The broker did work between samples -- a real cpu change -- right
+        # before what would have been the confirming third cycle.
+        findings = z.track_broker_idle_streaks([self._finding(10, cpu=43)], state,
+                                                min_streak=3)
+        self.assertFalse(findings[0]['confirmed'])
+        self.assertEqual(state[('C:/ws', 10)]['streak'], 1)
 
-        api.open = open_with_pid_reuse
+    def test_dropping_out_of_findings_loses_progress(self):
+        """A candidate that stops being reported (process gone, or no
+        longer superseded/idle) must not resume a stale streak later just
+        because a coincidentally-matching cpu reading reappears."""
+        state = {}
+        z.track_broker_idle_streaks([self._finding(10, cpu=42)], state, min_streak=3)
+        z.track_broker_idle_streaks([self._finding(10, cpu=42)], state, min_streak=3)
+        z.track_broker_idle_streaks([], state, min_streak=3)  # candidate vanished
+        findings = z.track_broker_idle_streaks([self._finding(10, cpu=42)], state,
+                                                min_streak=3)
+        self.assertFalse(findings[0]['confirmed'])
+        self.assertEqual(state[('C:/ws', 10)]['streak'], 1)
 
-        with patch.object(z.psutil, 'Process', FakeCmdline({10: BROKER_ARGV, 20: BROKER_ARGV})), \
-             patch.object(z.time, 'sleep'):
-            killed, reason = z.kill_broker_tree(api, root_pid=10, min_idle_seconds=600)
-
-        self.assertEqual(reason, 'killed')
-        self.assertNotIn(11, killed)  # the reused pid must never be terminated
-        self.assertIn(10, killed)
-        self.assertNotIn(11, api.terminated)
+    def test_different_cwds_track_independently(self):
+        state = {}
+        for _ in range(3):
+            findings = z.track_broker_idle_streaks(
+                [self._finding(10, cpu=42, cwd='C:/a'), self._finding(20, cpu=1, cwd='C:/b')],
+                state, min_streak=3)
+        self.assertTrue(all(f['confirmed'] for f in findings))
+        self.assertEqual(len(state), 2)
 
 
 if __name__ == '__main__':
