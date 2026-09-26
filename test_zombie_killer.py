@@ -31,6 +31,9 @@ class FakeAPI:
         self.killed.append(handle)
         return True
 
+    def process_table(self):
+        return []
+
 
 class SafetyTests(unittest.TestCase):
     def setUp(self):
