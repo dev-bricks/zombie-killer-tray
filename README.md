@@ -18,7 +18,7 @@
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Last Checked: 2026-09-23](https://img.shields.io/badge/last--checked-2026--09--23-informational.svg)](CHANGELOG.md)
+[![Last Checked: 2026-09-29](https://img.shields.io/badge/last--checked-2026--09--29-informational.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -442,7 +442,7 @@ python -m compileall -q .
 <a id="sec-16"></a><a id="third-party-transparency--level-1-sbom"></a><a id="drittanbieter-transparenz--level-1-sbom"></a>
 ## 16. Third-Party Transparency & Level 1 SBOM
 
-All runtime and development dependencies are 100% permissive open-source software (MIT, Apache-2.0, PSFL-2.0, BSD-3-Clause) with zero copyleft. Complete dependency inventory, license texts, and the Invariant Cross-Reference Matrix are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+All runtime and development dependencies are 100% permissive open-source software (MIT, Apache-2.0, PSFL-2.0, BSD-3-Clause) with zero copyleft. Complete dependency inventory, license texts, and the Invariant Cross-Reference Matrix are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) (plain-text companion: [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt)).
 
 Attribution notices for Lukas Geiger, `dev-bricks`, and the `open-bricks` umbrella ecosystem are codified in [NOTICE](NOTICE).
 

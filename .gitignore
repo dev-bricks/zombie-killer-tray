@@ -27,6 +27,8 @@ zombie_worker_errors.log
 # Test & coverage
 .coverage*
 htmlcov/
+.pytest_temp/
+.pytest_tmp*/
 .tox/
 .hypothesis/
 .turbo/
@@ -44,9 +46,15 @@ Desktop.ini
 * (Copy)*
 *-WORKSTATION*
 *-WORKSTATION-LG*
+*_WORKSTATION*
+*_WORKSTATION-LG*
+*-WORKSTATION.*
+*-WORKSTATION-LG.*
 *-ASUS*
 *-ASUS-GEI*
 *-LAPTOP*
+*-IDEAPAD*
+*-IDEAPAD-GEI*
 *-Mac Studio*
 *-MacBook*
 

@@ -18,7 +18,7 @@
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Stand: 2026-09-23](https://img.shields.io/badge/stand-2026--09--23-informational.svg)](CHANGELOG.md)
+[![Stand: 2026-09-29](https://img.shields.io/badge/stand-2026--09--29-informational.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -442,7 +442,7 @@ python -m compileall -q .
 <a id="sec-16"></a><a id="third-party-transparency--level-1-sbom"></a><a id="drittanbieter-transparenz--level-1-sbom"></a>
 ## 16. Drittanbieter-Transparenz & Level 1 SBOM
 
-Alle Laufzeit- und Entwicklungsabhängigkeiten unterliegen permissiven Open-Source-Lizenzen (MIT, Apache-2.0, PSFL-2.0, BSD-3-Clause) ohne Copyleft-Einschränkungen. Die vollständige Lizenz- und Invariantenmatrix ist in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) dokumentiert.
+Alle Laufzeit- und Entwicklungsabhängigkeiten unterliegen permissiven Open-Source-Lizenzen (MIT, Apache-2.0, PSFL-2.0, BSD-3-Clause) ohne Copyleft-Einschränkungen. Die vollständige Lizenz- und Invariantenmatrix ist in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) (Text-Begleitdatei: [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt)) dokumentiert.
 
 Urheberrechtshinweise für Lukas Geiger, `dev-bricks` und das `open-bricks` Ökosystem finden sich in [NOTICE](NOTICE).
 

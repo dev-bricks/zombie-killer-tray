@@ -1,0 +1,61 @@
+# =============================================================================
+# Third-Party Licenses - zombie-killer-tray (dev-bricks/zombie-killer-tray)
+# =============================================================================
+# zombie-killer-tray is licensed under the MIT License.
+# Canonical Notice: NOTICE
+# Comprehensive Markdown SBOM: THIRD_PARTY_LICENSES.md
+# Audit Date: 2026-09-29
+# This document lists third-party dependencies used during runtime, build,
+# packaging, and testing, along with their respective licenses and upstream URLs.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Runtime Dependencies
+# -----------------------------------------------------------------------------
+
+psutil
+License: BSD-3-Clause
+URL: https://github.com/giampaolo/psutil/blob/master/LICENSE
+Description: Cross-platform process and system monitoring library used for process table enumeration, CPU utilization sampling, and process metadata inspection.
+
+Python Standard Library
+License: Python Software Foundation License (PSF-2.0)
+URL: https://docs.python.org/3/license.html
+Description: Core runtime modules (ctypes, dataclasses, json, os, sys, threading, time, pathlib, subprocess, unittest). 100% pure Python standard library.
+
+# -----------------------------------------------------------------------------
+# 2. Build & Packaging Dependencies
+# -----------------------------------------------------------------------------
+
+hatchling
+License: MIT
+URL: https://github.com/pypa/hatch/blob/master/LICENSE.txt
+Description: Modern, extensible PEP 517/621 build backend for wheel and sdist generation.
+
+# -----------------------------------------------------------------------------
+# 3. Development, Linting & Test Dependencies
+# -----------------------------------------------------------------------------
+
+pytest
+License: MIT
+URL: https://github.com/pytest-dev/pytest/blob/main/LICENSE
+Description: Framework for unit, regression, and metadata contract test suites.
+
+ruff
+License: MIT OR Apache-2.0
+URL: https://github.com/astral-sh/ruff/blob/main/LICENSE-MIT
+Description: Fast Python linter and code formatter.
+
+# =============================================================================
+# Level 1 SBOM Invariant Compliance Status (Stand 2026-09-29):
+# - INV-LOCAL-01: PASS (100% Local-First & Zero Egress; no external telemetry)
+# - INV-SEC-02:   PASS (Unprivileged Inspection Mode via RunAsInvoker)
+# - INV-PARENT-03: PASS (Dead-Parent Verification in consecutive samples)
+# - INV-STABLE-04: PASS (Two-Sample CPU & Identity Stability; zero CPU delta)
+# - INV-HANDLE-05: PASS (PID-Reuse Protection via Pinned Win32 Process Handle)
+# - INV-ALLOW-06: PASS (Strict Allowlist of MCP and Language Server Entrypoints)
+# - INV-NOTREE-07: PASS (No Blanket Tree Kills; individual verified termination)
+# - INV-AUDIT-08: PASS (Pre-Termination Audit Logging in zombie_events.jsonl)
+# - INV-AGE-09:   PASS (Minimum Process Age Gate; default 30m threshold)
+# - INV-SLA-10:   PASS (Dual Security Response SLA: 48h Response, 5d Triage)
+# =============================================================================

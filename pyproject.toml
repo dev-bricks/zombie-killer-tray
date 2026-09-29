@@ -9,7 +9,7 @@ description = "Conservative Windows tray utility for cleaning up orphaned MCP an
 readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
-license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md"]
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt"]
 authors = [
   { name = "Lukas Geiger" }
 ]
@@ -69,6 +69,8 @@ Security = "https://github.com/dev-bricks/zombie-killer-tray/security/advisories
 "Parent Organization" = "https://github.com/dev-bricks"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
 "Third-Party Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.md"
+"Third-Party Licenses (Text)" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
+"Plain-Text Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
 Notice = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/NOTICE"
 "Marketing Log" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/MARKETING-LOG.txt"
 "LLM Ready" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/llms.txt"
@@ -82,10 +84,15 @@ packages = ["src/zombie_killer_tray"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
+addopts = "-ra -v --basetemp=.pytest_temp"
 testpaths = [".", "tests"]
 python_files = ["test_*.py", "*_test.py"]
-norecursedirs = [".git", ".pytest_cache", "__pycache__", "build", "dist", ".venv", "venv", "src"]
+norecursedirs = [".git", ".pytest_cache", ".pytest_temp", ".pytest_tmp*", "__pycache__", "build", "dist", ".venv", "venv", ".tox", ".hypothesis", ".turbo", "src"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+"zombie_killer.py" = ["E402", "F403"]
+"zombie_settings.py" = ["E402", "F403"]

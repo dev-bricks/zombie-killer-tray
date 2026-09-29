@@ -1,9 +1,14 @@
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import zombie_killer_tray.settings as s
+_SRC = str(Path(__file__).resolve().parent / "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+import zombie_killer_tray.settings as s  # noqa: E402
 
 
 class IntervalChoicesTests(unittest.TestCase):

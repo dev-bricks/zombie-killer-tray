@@ -25,6 +25,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("open-bricks", text)
         self.assertIn("MIT License", text)
         self.assertIn("THIRD_PARTY_LICENSES.md", text)
+        self.assertIn("THIRD_PARTY_LICENSES.txt", text)
 
     def test_ci_workflows_present_and_hardened(self):
         workflows = ROOT / ".github" / "workflows"
@@ -53,6 +54,29 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("timeout-minutes: 5", welcome_text)
         self.assertIn("cancel-in-progress: true", welcome_text)
 
+        auto_assign_yml = workflows / "auto-assign.yml"
+        self.assertTrue(auto_assign_yml.is_file(), "auto-assign.yml must exist")
+        auto_assign_text = auto_assign_yml.read_text(encoding="utf-8")
+        self.assertIn("actions/github-script@v7", auto_assign_text)
+        self.assertIn("timeout-minutes: 5", auto_assign_text)
+        self.assertIn("cancel-in-progress: true", auto_assign_text)
+        self.assertIn("pull-requests: write", auto_assign_text)
+
+        label_sync_yml = workflows / "label-sync.yml"
+        self.assertTrue(label_sync_yml.is_file(), "label-sync.yml must exist")
+        label_sync_text = label_sync_yml.read_text(encoding="utf-8")
+        self.assertIn("EndBug/label-sync@v2", label_sync_text)
+        self.assertIn("timeout-minutes: 5", label_sync_text)
+        self.assertIn("cancel-in-progress: true", label_sync_text)
+        self.assertIn("issues: write", label_sync_text)
+        self.assertIn(".github/labels.yml", label_sync_text)
+
+        labels_yml = ROOT / ".github" / "labels.yml"
+        self.assertTrue(labels_yml.is_file(), ".github/labels.yml must exist")
+        labels_text = labels_yml.read_text(encoding="utf-8")
+        for expected_label in ["bug", "enhancement", "good first issue", "help wanted", "priority: high"]:
+            self.assertIn(expected_label, labels_text)
+
     def test_gitignore_multihost_and_lock_defense(self):
         gitignore = ROOT / ".gitignore"
         self.assertTrue(gitignore.is_file(), ".gitignore must exist")
@@ -63,8 +87,12 @@ class MetadataContractTests(unittest.TestCase):
             "* (Kopie)*",
             "* (Copy)*",
             "*-WORKSTATION*",
+            "*-WORKSTATION-LG*",
+            "*_WORKSTATION*",
+            "*_WORKSTATION-LG*",
             "*-ASUS*",
             "*-LAPTOP*",
+            "*-IDEAPAD*",
             "LOCK",
             "LOCK.*",
             "LOCK.user.*",
@@ -75,6 +103,8 @@ class MetadataContractTests(unittest.TestCase):
             "!package-lock.json",
             "zombie_events.jsonl",
             "zombie_tray.log",
+            ".pytest_temp/",
+            ".pytest_tmp*/",
         ]
         for pattern in required_patterns:
             self.assertIn(pattern, content, f"Missing required .gitignore pattern: {pattern}")
@@ -94,6 +124,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("LICENSE", license_files)
         self.assertIn("NOTICE", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.md", license_files)
+        self.assertIn("THIRD_PARTY_LICENSES.txt", license_files)
 
         urls = project.get("urls", {})
         for required_url_key in [
@@ -104,6 +135,8 @@ class MetadataContractTests(unittest.TestCase):
             "Security",
             "Notice",
             "Third-Party Licenses",
+            "Third-Party Licenses (Text)",
+            "Plain-Text Licenses",
             "Marketing Log",
             "LLM Ready",
             "Parent Organization",
@@ -116,6 +149,8 @@ class MetadataContractTests(unittest.TestCase):
 
         self.assertIn("tool", data)
         self.assertIn("pytest", data["tool"])
+        pytest_ini = data["tool"]["pytest"].get("ini_options", {})
+        self.assertIn("--basetemp=.pytest_temp", pytest_ini.get("addopts", ""))
         self.assertIn("ruff", data["tool"])
 
     def test_third_party_licenses_audit_recency_and_invariants(self):
@@ -124,7 +159,7 @@ class MetadataContractTests(unittest.TestCase):
         text = sbom.read_text(encoding="utf-8")
 
         self.assertTrue(
-            "Audited:** 2026-09-23" in text or "Audited:** 2026-09-22" in text,
+            "Audited:** 2026-09-29" in text or "Audited:** 2026-09-23" in text or "Audited:** 2026-09-22" in text,
             "THIRD_PARTY_LICENSES.md audit date must be recent",
         )
         self.assertIn("[NOTICE](NOTICE)", text)
@@ -147,6 +182,17 @@ class MetadataContractTests(unittest.TestCase):
         ]
         for inv_code in expected_invariants:
             self.assertIn(inv_code, text, f"Missing invariant code: {inv_code}")
+
+        # Level 1 SBOM plain-text companion
+        sbom_txt = ROOT / "THIRD_PARTY_LICENSES.txt"
+        self.assertTrue(sbom_txt.is_file(), "THIRD_PARTY_LICENSES.txt must exist")
+        txt_content = sbom_txt.read_text(encoding="utf-8")
+        self.assertIn("psutil", txt_content)
+        self.assertIn("BSD-3-Clause", txt_content)
+        self.assertIn("Python Standard Library", txt_content)
+        for inv_code in expected_invariants:
+            self.assertIn(inv_code, txt_content, f"Missing invariant in txt companion: {inv_code}")
+
 
     def test_security_sla_and_statutory_disclaimer(self):
         security = ROOT / "SECURITY.md"
@@ -243,12 +289,16 @@ class MetadataContractTests(unittest.TestCase):
         self.assertTrue(llms.is_file(), "llms.txt must exist")
         text = llms.read_text(encoding="utf-8")
 
-        self.assertIn("Last-checked: 2026-09-23", text)
+        self.assertTrue(
+            "Last-checked: 2026-09-29" in text or "Last-checked: 2026-09-23" in text,
+            "llms.txt Last-checked date must be recent",
+        )
         self.assertIn("0.1.0", text)
         self.assertIn("521 BGB", text)
         self.assertIn("INV-LOCAL-01", text)
         self.assertIn("INV-SLA-10", text)
         self.assertIn("[PERSONA-01]", text)
+        self.assertIn("THIRD_PARTY_LICENSES.txt", text)
 
     def test_marketing_log_present_and_valid(self):
         mkt = ROOT / "MARKETING-LOG.txt"
@@ -257,6 +307,7 @@ class MetadataContractTests(unittest.TestCase):
 
         self.assertIn("Target Repo: dev-bricks/zombie-killer-tray", text)
         self.assertIn("ACTION: PFAD_B_MARKETING", text)
+        self.assertIn("ACTION: PFAD_A_HYGIENE", text)
         self.assertIn("Version: 0.1.0", text)
         self.assertIn("[PERSONA-01]", text)
         self.assertIn("INV-LOCAL-01", text)

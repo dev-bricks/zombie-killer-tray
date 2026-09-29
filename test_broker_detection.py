@@ -36,11 +36,17 @@ Also covers the review findings on PR #3 (head fc6a5a6, then 04735c9):
    calls (a real, cumulative multi-minute span) before a finding is marked
    `confirmed` -- raising confidence without ever acting on it.
 """
+import sys
 import time
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-import zombie_killer_tray.killer as z
+_SRC = str(Path(__file__).resolve().parent / "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+import zombie_killer_tray.killer as z  # noqa: E402
 
 FILETIME_EPOCH = 11644473600
 
