@@ -137,6 +137,7 @@ class MetadataContractTests(unittest.TestCase):
             "Third-Party Licenses",
             "Third-Party Licenses (Text)",
             "Plain-Text Licenses",
+            "Level 1 SBOM",
             "Marketing Log",
             "LLM Ready",
             "Parent Organization",
@@ -158,10 +159,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertTrue(sbom.is_file(), "THIRD_PARTY_LICENSES.md must exist")
         text = sbom.read_text(encoding="utf-8")
 
-        self.assertTrue(
-            "Audited:** 2026-09-29" in text or "Audited:** 2026-09-23" in text or "Audited:** 2026-09-22" in text,
-            "THIRD_PARTY_LICENSES.md audit date must be recent",
-        )
+        self.assertIn("Audited:** 2026-10-01", text, "THIRD_PARTY_LICENSES.md audit date must be 2026-10-01")
         self.assertIn("[NOTICE](NOTICE)", text)
         self.assertIn("psutil", text)
         self.assertIn("BSD-3-Clause", text)
@@ -187,6 +185,8 @@ class MetadataContractTests(unittest.TestCase):
         sbom_txt = ROOT / "THIRD_PARTY_LICENSES.txt"
         self.assertTrue(sbom_txt.is_file(), "THIRD_PARTY_LICENSES.txt must exist")
         txt_content = sbom_txt.read_text(encoding="utf-8")
+        self.assertIn("Audit Date: 2026-10-01", txt_content)
+        self.assertIn("Stand 2026-10-01", txt_content)
         self.assertIn("psutil", txt_content)
         self.assertIn("BSD-3-Clause", txt_content)
         self.assertIn("Python Standard Library", txt_content)
@@ -232,11 +232,15 @@ class MetadataContractTests(unittest.TestCase):
             self.assertIn(anchor, en_text, f"README.md missing anchor {anchor}")
             self.assertIn(anchor, de_text, f"README_de.md missing anchor {anchor}")
 
-        # Governance & Statutory checks
+        # Governance, Statutory & Badges checks
         self.assertIn("521 BGB", en_text)
         self.assertIn("521 BGB", de_text)
         self.assertIn("Attribution-NOTICE-blue.svg", en_text)
         self.assertIn("Attribution-NOTICE-blue.svg", de_text)
+        self.assertIn("Verified: 2026-10-01", en_text)
+        self.assertIn("Geprüft: 2026-10-01", de_text)
+        self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", en_text)
+        self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", de_text)
 
         # Invariants INV-LOCAL-01 through INV-SLA-10 in both
         for inv_code in [
@@ -289,10 +293,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertTrue(llms.is_file(), "llms.txt must exist")
         text = llms.read_text(encoding="utf-8")
 
-        self.assertTrue(
-            "Last-checked: 2026-09-29" in text or "Last-checked: 2026-09-23" in text,
-            "llms.txt Last-checked date must be recent",
-        )
+        self.assertIn("Last-checked: 2026-10-01", text, "llms.txt Last-checked date must be 2026-10-01")
         self.assertIn("0.1.0", text)
         self.assertIn("521 BGB", text)
         self.assertIn("INV-LOCAL-01", text)
@@ -308,9 +309,35 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("Target Repo: dev-bricks/zombie-killer-tray", text)
         self.assertIn("ACTION: PFAD_B_MARKETING", text)
         self.assertIn("ACTION: PFAD_A_HYGIENE", text)
+        self.assertIn("2026-10-01", text)
         self.assertIn("Version: 0.1.0", text)
         self.assertIn("[PERSONA-01]", text)
         self.assertIn("INV-LOCAL-01", text)
+
+    def test_ascii_four_view_architectural_topology_parity(self):
+        readme_en = ROOT / "README.md"
+        readme_de = ROOT / "README_de.md"
+
+        en_text = readme_en.read_text(encoding="utf-8")
+        de_text = readme_de.read_text(encoding="utf-8")
+
+        expected_en_views = [
+            "VIEW 1: ENTRYPOINTS, USER INTERFACES & TRAY RUNTIMES",
+            "VIEW 2: ZOMBIE REAPER SOVEREIGN CORE ENGINE & PID VERIFICATION",
+            "VIEW 3: RUNTIME PERSISTENCE, FORENSIC JSONL AUDIT & KERNEL OBJECT LOCKS",
+            "VIEW 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE",
+        ]
+        for view_header in expected_en_views:
+            self.assertIn(view_header, en_text, f"README.md missing ASCII topology view: {view_header}")
+
+        expected_de_sichten = [
+            "SICHT 1: STARTER, BENUTZEROBERFLÄCHEN & TRAY-LAUFZEITEN",
+            "SICHT 2: ZOMBIE-REAPER KERN-ENGINE & PID-VERIFIKATION",
+            "SICHT 3: LAUFZEIT-PERSISTENZ, FORENSISCHES JSONL-AUDIT & KERNEL-SPERREN",
+            "SICHT 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE",
+        ]
+        for sicht_header in expected_de_sichten:
+            self.assertIn(sicht_header, de_text, f"README_de.md missing ASCII topology sicht: {sicht_header}")
 
 
 if __name__ == "__main__":

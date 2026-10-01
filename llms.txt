@@ -1,6 +1,6 @@
 # Zombie Killer Tray (dev-bricks/zombie-killer-tray)
 
-> Last-checked: 2026-09-29
+> Last-checked: 2026-10-01
 > Version: 0.1.0
 > Organization: dev-bricks
 > Umbrella Ecosystem: open-bricks
@@ -14,7 +14,7 @@ Conservative Windows system tray utility for safely cleaning up orphaned Model C
 
 The repository provides full 18-point bilingual navigation parity across `README.md` and `README_de.md` with reciprocal dual HTML anchor aliases:
 1. Overview & Problem Statement (`#overview--problem-statement` / `#ueberblick--problemstellung`)
-2. System Architecture & Topology (`#system-architecture--topology` / `#systemarchitektur--topologie`)
+2. System Architecture & Topology (`#system-architecture--topology` / `#systemarchitektur--topologie`, includes ASCII Four-View Architectural Topology projection and Mermaid flowchart)
 3. Complete Lifecycle Sequence (`#complete-lifecycle-sequence` / `#vollstaendiger-ausfuehrungsablauf`)
 4. Governance & Runtime Invariants (`#governance--runtime-invariants` / `#sicherheitsmodell--governance-invarianten`)
 5. Target Personas & Discoverability (`#target-personas--discoverability` / `#zielgruppen--auffindbarkeit`)

@@ -14,11 +14,12 @@
 [![Security SLA: 48h / 5d](https://img.shields.io/badge/Security%20SLA-48h%20Response%20%7C%205d%20Triage-blue.svg)](SECURITY.md)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Level 1 SBOM: Audited](https://img.shields.io/badge/Third--Party%20Licenses-Audited-blue.svg)](THIRD_PARTY_LICENSES.md)
+[![Level 1 SBOM: Plain Text Audited](https://img.shields.io/badge/Level%201%20SBOM-Plain%20Text%20Audited-blue.svg)](THIRD_PARTY_LICENSES.txt)
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Last Checked: 2026-09-29](https://img.shields.io/badge/last--checked-2026--09--29-informational.svg)](CHANGELOG.md)
+[![Last Checked: 2026-10-01](https://img.shields.io/badge/last--checked-2026--10--01-informational.svg)](CHANGELOG.md)
+[![Verified: 2026-10-01](https://img.shields.io/badge/Verified-2026--10--01-blue.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -66,6 +67,48 @@ Standard administrative cleanup techniques on Windows are fraught with risk:
 
 <a id="sec-02"></a><a id="system-architecture--topology"></a><a id="systemarchitektur--topologie"></a>
 ## 2. System Architecture & Topology
+
+#### Architectural Topology Projection (Four-View System Architecture)
+
+```text
++-------------------------------------------------------------------------------+
+|  VIEW 1: ENTRYPOINTS, USER INTERFACES & TRAY RUNTIMES                         |
+|  - Windows System Tray UI (zombie_tray.ps1, NotifyIcon, WinForms Balloon)     |
+|  - Elevated Admin Launcher (start-zombie-killer-admin.bat)                    |
+|  - Unprivileged Pre-Flight Diagnostic Mode (--check, RunAsInvoker)            |
+|  - Python Package CLI & Embedded Runtime (zombie_killer_tray / zombie_killer) |
++---------------------------------------+---------------------------------------+
+                                        | invokes / supervises
+                                        v
++-------------------------------------------------------------------------------+
+|  VIEW 2: ZOMBIE REAPER SOVEREIGN CORE ENGINE & PID VERIFICATION               |
+|  - Win32 Process Snapshot Enumeration (psutil.process_iter / ctypes Enum)     |
+|  - Allowlist Classifier (LSP, MCP Packages, Node Entries, Python Modules)     |
+|  - Parent PID Liveness Probes (INV-PARENT-03: Two-sample dead-parent check)   |
+|  - Two-Sample CPU Inactivity & Identity Stability Gate (INV-STABLE-04)        |
+|  - Minimum Process Age Gate (INV-AGE-09: >= 30min Default Floor)              |
++---------------------------------------+---------------------------------------+
+                                        | coordinates / acquires
+                                        v
++-------------------------------------------------------------------------------+
+|  VIEW 3: RUNTIME PERSISTENCE, FORENSIC JSONL AUDIT & KERNEL OBJECT LOCKS      |
+|  - Retained Win32 Kernel Object Pin (OpenProcess, PROCESS_TERMINATE)          |
+|  - Atomic PID-Reuse Hazard Neutralizer (INV-HANDLE-05)                        |
+|  - Pre-Termination Forensic Audit Ledger (INV-AUDIT-08: zombie_events.jsonl)  |
+|  - Non-Blanket Individual Win32 TerminateProcess Execution (INV-NOTREE-07)    |
+|  - User Settings & Interval Cadence Persistence (zombie_state.json)           |
++---------------------------------------+---------------------------------------+
+                                        | encloses / enforces
+                                        v
++-------------------------------------------------------------------------------+
+|  VIEW 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE     |
+|  - 100% Local-First Offline Operation & Zero Network Egress (INV-LOCAL-01)    |
+|  - Unprivileged Non-Elevation Security Policy (INV-SEC-02, RunAsInvoker)      |
+|  - Dual Security Response & Triage SLA (INV-SLA-10: 48h Response, 5d Triage)  |
+|  - Statutory Warranty Disclaimer (§ 521 BGB Gefälligkeitsrecht)               |
+|  - Level 1 SBOM Third-Party Transparency (MIT, BSD-3-Clause, PSFL-2.0)        |
++-------------------------------------------------------------------------------+
+```
 
 ```mermaid
 flowchart TD

@@ -14,11 +14,12 @@
 [![Security SLA: 48h / 5d](https://img.shields.io/badge/Security%20SLA-48h%20Response%20%7C%205d%20Triage-blue.svg)](SECURITY.md)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Level 1 SBOM: Geprüft](https://img.shields.io/badge/Third--Party%20Licenses-Audited-blue.svg)](THIRD_PARTY_LICENSES.md)
+[![Level 1 SBOM: Geprüft](https://img.shields.io/badge/Level%201%20SBOM-Plain%20Text%20Audited-blue.svg)](THIRD_PARTY_LICENSES.txt)
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Stand: 2026-09-29](https://img.shields.io/badge/stand-2026--09--29-informational.svg)](CHANGELOG.md)
+[![Stand: 2026-10-01](https://img.shields.io/badge/stand-2026--10--01-informational.svg)](CHANGELOG.md)
+[![Geprüft: 2026-10-01](https://img.shields.io/badge/Gepr%C3%BCft-2026--10--01-blue.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -66,6 +67,48 @@ Klassische Administrationsansätze unter Windows bergen erhebliche Risiken:
 
 <a id="sec-02"></a><a id="system-architecture--topology"></a><a id="systemarchitektur--topologie"></a>
 ## 2. Systemarchitektur & Topologie
+
+#### Architektonische Topologie-Projektion (Vier-Sichten-Systemarchitektur)
+
+```text
++-------------------------------------------------------------------------------+
+|  SICHT 1: STARTER, BENUTZEROBERFLÄCHEN & TRAY-LAUFZEITEN                      |
+|  - Windows-System-Tray-UI (zombie_tray.ps1, NotifyIcon, WinForms Balloon)     |
+|  - Admin-Starter mit UAC-Elevation (start-zombie-killer-admin.bat)            |
+|  - Unprivilegierter Vorab-Diagnosemodus (--check, RunAsInvoker)               |
+|  - Python-Paket-CLI & Eingebettete Laufzeit (zombie_killer_tray / killer)     |
++---------------------------------------+---------------------------------------+
+                                        | startet / überwacht
+                                        v
++-------------------------------------------------------------------------------+
+|  SICHT 2: ZOMBIE-REAPER KERN-ENGINE & PID-VERIFIKATION                        |
+|  - Win32-Prozess-Enumeration & Snapshots (psutil.process_iter / ctypes Enum)  |
+|  - Allowlist-Klassifikator (LSP, MCP-Pakete, Node-Einträge, Python-Module)    |
+|  - Elternprozess-Lebensprüfung (INV-PARENT-03: Zwei-Stichproben-Elterntod)    |
+|  - Zwei-Stichproben CPU-Stillstand & Identitäts-Stabilitäts-Gate (STABLE-04)  |
+|  - Mindestalter-Prüfung (INV-AGE-09: >= 30min Standard-Untergrenze)           |
++---------------------------------------+---------------------------------------+
+                                        | koordiniert / sichert
+                                        v
++-------------------------------------------------------------------------------+
+|  SICHT 3: LAUFZEIT-PERSISTENZ, FORENSISCHES JSONL-AUDIT & KERNEL-SPERREN      |
+|  - Win32 Kernel-Handle-Sperre (OpenProcess mit PROCESS_TERMINATE)             |
+|  - Schutz vor Windows-PID-Wiederverwendungs-Races (INV-HANDLE-05)             |
+|  - Vorab-Forensik-Auditprotokoll (INV-AUDIT-08: zombie_events.jsonl)          |
+|  - Einzelprozess-Beendigung ohne Baum-Kills (INV-NOTREE-07: TerminateProcess) |
+|  - Benutzereinstellungen & Intervall-Persistenz (zombie_state.json)           |
++---------------------------------------+---------------------------------------+
+                                        | umfasst / erzwingt
+                                        v
++-------------------------------------------------------------------------------+
+|  SICHT 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE    |
+|  - 100% Lokaler Offline-Betrieb & Null-Netzwerk-Egress (INV-LOCAL-01)         |
+|  - Unprivilegierte Non-Elevation-Sicherheitsrichtlinie (INV-SEC-02, Invoker)  |
+|  - Duales Sicherheits-Reaktions-SLA (INV-SLA-10: 48h Antwort, 5 Tage Triage)  |
+|  - Gesetzlicher Haftungsausschluss (§ 521 BGB Gefälligkeitsrecht)             |
+|  - Level 1 SBOM Drittanbieter-Transparenz (MIT, BSD-3-Clause, PSFL-2.0)       |
++-------------------------------------------------------------------------------+
+```
 
 ```mermaid
 flowchart TD

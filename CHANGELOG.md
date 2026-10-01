@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 2026-10-01
 
 ### Added
+- Visual Architecture: ASCII Four-View Architectural Topology projection in Section 2 of `README.md` and `README_de.md` (Views 1-4 / Sichten 1-4: Entrypoints & Tray Runtimes, Zombie Reaper Sovereign Core Engine, Runtime Persistence & Kernel Locks, Air-Gap Defense Perimeter & Zero-Egress Governance).
+- Level 1 SBOM recency audit (Stand 2026-10-01) in `THIRD_PARTY_LICENSES.md` and `THIRD_PARTY_LICENSES.txt` re-verifying all 10 runtime/governance invariants (`INV-LOCAL-01` through `INV-SLA-10`).
+- Project metadata enrichment: Added `"Level 1 SBOM"` URL under `[project.urls]` in `pyproject.toml`.
+- Status and audit badges synchronized across `README.md` and `README_de.md` to `2026-10-01`.
+- Expanded automated contract tests in `tests/test_metadata.py` validating ASCII Four-View Architectural Topology projection, bilingual view parity, Level 1 SBOM recency, and 2026-10-01 badge synchronization.
+
+### Added (Previous)
 - CI/CD Lifecycle Workflows: `.github/workflows/auto-assign.yml` (automated PR assignment using `actions/github-script@v7`, `timeout-minutes: 5`, least-privilege `issues: write`, `pull-requests: write`, and concurrency `cancel-in-progress: true`), `.github/workflows/label-sync.yml` (automated label synchronization using `EndBug/label-sync@v2`, `timeout-minutes: 5`, least-privilege `issues: write`, and concurrency `cancel-in-progress: true`), and canonical `.github/labels.yml` with 11 standard triage labels per `GOVERNANCE.md §4.2`.
 - Level 1 SBOM Plain-Text Companion: `THIRD_PARTY_LICENSES.txt` companion file providing plaintext transparency and verifying compliance against all 10 architectural and governance invariants (`INV-LOCAL-01` through `INV-SLA-10`), with cross-reference in canonical root `NOTICE` and `THIRD_PARTY_LICENSES.md`.
 - PEP 621 metadata enhancement in `pyproject.toml`: Added `"THIRD_PARTY_LICENSES.txt"` to `license-files` whitelist and registered `"Third-Party Licenses (Text)"` and `"Plain-Text Licenses"` URLs under `[project.urls]`.

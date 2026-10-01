@@ -71,6 +71,7 @@ Security = "https://github.com/dev-bricks/zombie-killer-tray/security/advisories
 "Third-Party Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.md"
 "Third-Party Licenses (Text)" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
 "Plain-Text Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
+"Level 1 SBOM" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
 Notice = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/NOTICE"
 "Marketing Log" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/MARKETING-LOG.txt"
 "LLM Ready" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/llms.txt"
