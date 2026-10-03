@@ -1,71 +1,55 @@
-# Zombie Killer Tray (dev-bricks/zombie-killer-tray)
+# Zombie Killer Tray
 
-> Last-checked: 2026-10-03
-> Version: 0.1.0
-> Organization: dev-bricks
-> Umbrella Ecosystem: open-bricks
-> License: MIT (Attribution: NOTICE, Level 1 SBOM: THIRD_PARTY_LICENSES.md, Plain-Text: THIRD_PARTY_LICENSES.txt, Contributing: CONTRIBUTING.md)
+> Source version declared in `pyproject.toml`: 0.1.0. This declaration does not establish that a package release has occurred.
+> Source review date: 2026-10-03.
+> Last-checked: 2026-10-03.
+> Project license: MIT (`LICENSE` and `NOTICE`).
 
-## Summary for LLMs & AI Agents
+## Summary
 
-Conservative Windows system tray utility for safely cleaning up orphaned Model Context Protocol (MCP) and language server background processes. It validates process incarnation, dead-parent state across two sampling intervals, CPU stability (zero delta), and a conservative minimum age threshold (30 minutes default). It retains a Win32 process handle to eliminate PID-reuse race conditions and never performs blanket `taskkill /T` process tree terminations.
+A Windows tray utility and Python tools for inspecting selected orphaned Model Context Protocol (MCP) and language-server processes and optionally attempting to terminate an eligible individual process. The tool is intended for local developer workstations; it is not a general process manager.
 
-## Documentation & Architecture Navigation (18-Point Parity)
+## Current behavior and limits
 
-The repository provides full 18-point bilingual navigation parity across `README.md` and `README_de.md` with reciprocal dual HTML anchor aliases:
-1. Overview & Problem Statement (`#overview--problem-statement` / `#ueberblick--problemstellung`)
-2. System Architecture & Topology (`#system-architecture--topology` / `#systemarchitektur--topologie`, includes ASCII Four-View Architectural Topology projection and Mermaid flowchart)
-3. Complete Lifecycle Sequence (`#complete-lifecycle-sequence` / `#vollstaendiger-ausfuehrungsablauf`)
-4. Governance & Runtime Invariants (`#governance--runtime-invariants` / `#sicherheitsmodell--governance-invarianten`)
-5. Target Personas & Discoverability (`#target-personas--discoverability` / `#zielgruppen--auffindbarkeit`)
-6. Comparative Matrix & Alternatives (`#comparative-matrix--alternatives` / `#vergleichsmatrix--alternativen`)
-7. Sibling Ecosystem & Partner Tools (`#sibling-ecosystem--partner-tools` / `#geschwister-oekosystem--partner-tools`)
-8. Features & Capabilities (`#features--capabilities` / `#kernfunktionen--faehigkeiten`)
-9. Windows Tray Interface & User Experience (`#windows-tray-interface--ux` / `#windows-tray-bedienoberflaeche--benutzererlebnis`)
-10. Requirements & Platform Compatibility (`#requirements--platform-compatibility` / `#voraussetzungen--plattform-kompatibilitaet`)
-11. Start & Execution Modes (`#start--execution-modes` / `#start--ausfuehrungsmodi`)
-12. Allowlist Configuration & Reaping Rules (`#allowlist-configuration--reaping-rules` / `#allowlist-konfiguration--reaping-regeln`)
-13. Audit Logging & Forensic Event Schema (`#audit-logging--forensic-event-schema` / `#audit-protokollierung--forensisches-ereignis-schema`)
-14. Testing & Quality Assurance (`#testing--quality-assurance` / `#tests--qualitaetssicherung`)
-15. Security Policy & Privacy Governance (`#security-policy--privacy-governance` / `#sicherheitsrichtlinie--datenschutz-governance`)
-16. Third-Party Transparency & Level 1 SBOM (`#third-party-transparency--level-1-sbom` / `#drittanbieter-transparenz--level-1-sbom`)
-17. Development, Build & Packaging (`#development-build--packaging` / `#entwicklung-build--packaging`)
-18. Statutory Notice (§ 521 BGB) & License Attribution (`#statutory-notice--521-bgb--license-attribution` / `#gesetzlicher-hinweis--521-bgb--lizenz-attribution`)
+- Candidate matching uses configured MCP and language-server entrypoints.
+- The engine checks parent state, process identity and CPU observations, and minimum age; it retains a Windows process handle during the checks and termination path.
+- In apply mode, an intent record is appended to a local JSONL log before a termination attempt. A failed intent write skips that attempt.
+- The default minimum age is 30 minutes. The tray exposes supported interval and minimum-age choices; lower engine bounds are 3 seconds for interval and 30 seconds for minimum age.
+- The reviewed first-party process and tray source contains no outbound request code. This is a source observation, not an OS-level network block or a guarantee about dependencies, the host, or other processes.
+- Logs can contain process identifiers, executable names, command-line arguments, timestamps, and local paths. They are ordinary editable files, not tamper-evident records.
+- No response-time SLA, legal-conformity certification, or risk-free termination guarantee is claimed.
 
-## Key Architectural & Governance Invariants
+## User interface and documentation languages
 
-- **INV-LOCAL-01 (100% Local-First & Zero Egress):** No network connections, telemetry, or remote dependencies.
-- **INV-SEC-02 (Unprivileged Inspection Mode):** Non-elevated preflight verification supported via `--check` (`RunAsInvoker`).
-- **INV-PARENT-03 (Dead-Parent Verification):** Parent PID must be verified dead in both samples and immediately prior to kill.
-- **INV-STABLE-04 (Two-Sample CPU Stability):** Requires zero CPU delta between sampling rounds.
-- **INV-HANDLE-05 (PID-Reuse Protection):** Locks process object with a retained Win32 `OpenProcess` handle.
-- **INV-ALLOW-06 (Strict Allowlist):** Only exact allowlisted MCP packages and language server binaries are targeted.
-- **INV-NOTREE-07 (No Blanket Tree Kills):** Each process is verified and terminated individually; no recursive tree kills.
-- **INV-AUDIT-08 (Pre-Termination Audit Logging):** Local audit record written to `zombie_events.jsonl` before termination syscall.
-- **INV-AGE-09 (Minimum Process Age):** Default 30-minute grace period protects active tasks.
-- **INV-SLA-10 (Dual Security Response SLA):** 48h initial response, 5-business-day triage commitment.
+The tray menu, tooltip, and language selector support English, German, Spanish, Simplified Chinese, Japanese, and Russian. The selected language is stored locally; technical logs remain in English. The repository provides matching README files: `README.md`, `README_de.md`, `README_es.md`, `README_zh.md`, `README_ja.md`, and `README_ru.md`.
 
-## Target Personas & High-Intent Workflows
+## Main entry points
 
-- `[PERSONA-01]` Autonomous AI Agent Engineers & Swarm Developers (Claude Code, Codex CLI, Antigravity, Kimi): Safe cleanup of dangling MCP servers without losing active coding agent state.
-- `[PERSONA-02]` Windows DevOps & Workstation Reliability Engineers (SREs): Automated background supervision without blanket taskkill destruction or lock retention.
-- `[PERSONA-03]` Full-Stack Developers & Language Server Users (rust-analyzer, clangd, gopls, pylsp): Release lingering binary locks after IDE window exit.
-- `[PERSONA-04]` Enterprise Security & Compliance Auditors: 100% zero-egress, local JSONL audit trail, Level 1 SBOM, and codified § 521 BGB disclaimer.
+- `zombie_tray.ps1`: Windows Forms notification-area UI.
+- `zombie_killer.py`: process inspection and termination engine.
+- `zombie_settings.py`: supported tray settings and persistence.
+- `start-zombie-killer-admin.bat`: launcher; normal tray operation requests elevation. Its `--check` mode only checks the tray script and PowerShell parsing.
 
-## Entry Points & Usage
+## Local development checks
 
-- `start-zombie-killer-admin.bat`: Elevated launcher for background tray application.
-- `start-zombie-killer-admin.bat --check`: Unprivileged pre-flight check of PowerShell and Python environment (`RunAsInvoker`).
-- `zombie_tray.ps1`: Windows Forms NotifyIcon tray implementation.
-- `zombie_killer.py`: Core Win32 ctypes and psutil inspection and reaping engine.
-
-## Verification & Testing
+From a Windows development environment with Python 3.12 or newer and the declared development dependencies installed:
 
 ```powershell
-python -m pytest -ra -v
+python -m pytest -ra -v .
 python -m unittest -v test_zombie_killer
+python -m unittest -v tests/test_metadata.py
+python -m ruff check .
+python -m compileall -q .
 ```
 
-## Legal & Statutory Disclaimer
+The full pytest command collects the repository's root tests and metadata tests. Test results depend on the environment; this file does not claim that a host-process smoke test has been run.
 
-Distributed under the MIT License. In accordance with § 521 BGB (Gefälligkeitsrecht), statutory warranty and liability are limited to intent and gross negligence.
+For the contributor setup and review checklist, see `CONTRIBUTING.md`.
+
+## Dependency and license scope
+
+`pyproject.toml` declares `psutil` as the direct runtime dependency, `hatchling` as the build backend, and `pytest` and `ruff` as development dependencies. `THIRD_PARTY_LICENSES.md` and `THIRD_PARTY_LICENSES.txt` summarize those direct dependencies and their recorded licenses. They are not a complete transitive dependency inventory or a legal certification.
+
+## Navigation
+
+The six README files provide the user-facing feature, safety, setup, testing, privacy, dependency, and license information. `SECURITY.md` contains vulnerability-reporting instructions. `RELEASE_GATE.md` lists release checks; its checklist is not evidence that a release has occurred.

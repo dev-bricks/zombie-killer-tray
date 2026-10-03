@@ -1,12 +1,12 @@
 """Contract and hygiene test suite for dev-bricks/zombie-killer-tray.
 
-Validates repository metadata, CI workflows, packaging invariants,
-multi-host lock defense, SBOM recency, 18-point bilingual documentation parity,
-dual Mermaid diagrams, target personas, and comparative matrix.
+Validates repository metadata, CI workflows, packaging invariants, direct-license scope,
+multi-host lock defense, six-language documentation structure, and Mermaid diagrams.
 """
 from __future__ import annotations
 
 import re
+import subprocess
 import tomllib
 import unittest
 from pathlib import Path
@@ -86,32 +86,34 @@ class MetadataContractTests(unittest.TestCase):
             "*conflicted copy*",
             "* (Kopie)*",
             "* (Copy)*",
+            "*.swp",
+            "*.swo",
+            "*~",
+            "TASKPLAN_*.md",
+            "*-TASKPLAN*",
+            "desktop.ini",
+            "ehthumbs.db",
             "*-WORKSTATION*",
             "*-WORKSTATION-LG*",
             "*_WORKSTATION*",
             "*_WORKSTATION-LG*",
             "*-ASUS*",
+            "*-ASUS-GEI.*",
             "*-LAPTOP*",
             "*-IDEAPAD*",
+            "*-IDEAPAD-GEI.*",
             "LOCK",
             "LOCK.*",
             "LOCK.user.*",
             "LOCK.until.*",
             "LOCK.condition.*",
-            "LOCK.permissions.json",
             "LOCK.dev.*",
             "LOCK.antigravity.*",
             "LOCK.bugsearch.*",
-            "*-ASUS-GEI.*",
-            "*-IDEAPAD-GEI.*",
-            "desktop.ini",
-            "ehthumbs.db",
-            "TASKPLAN_*.md",
-            "*-TASKPLAN*",
-            "*.swp",
-            "*.swo",
+            "LOCK.permissions.json",
             "uv.lock",
             "!package-lock.json",
+            "MARKETING-LOG.txt",
             "zombie_events.jsonl",
             "zombie_tray.log",
             ".pytest_temp/",
@@ -136,7 +138,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("NOTICE", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.md", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.txt", license_files)
-        self.assertIn("CONTRIBUTING.md", license_files)
+        self.assertNotIn("CONTRIBUTING.md", license_files)
 
         urls = project.get("urls", {})
         for required_url_key in [
@@ -144,23 +146,28 @@ class MetadataContractTests(unittest.TestCase):
             "Documentation",
             "Repository",
             "Issues",
-            "Changelog",
-            "Contributing",
             "Security",
             "Notice",
-            "Third-Party Licenses",
-            "Third-Party Licenses (Text)",
-            "Plain-Text Licenses",
-            "Level 1 SBOM",
-            "Marketing Log",
+            "Direct Dependency License Summary",
+            "Direct Dependency License Summary (Text)",
             "LLM Ready",
+            "Contributing",
             "Parent Organization",
             "Umbrella Ecosystem",
         ]:
             self.assertIn(required_url_key, urls, f"Missing project URL key: {required_url_key}")
 
+        self.assertNotIn("Marketing Log", urls)
+        self.assertEqual(
+            urls["Contributing"],
+            "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CONTRIBUTING.md",
+        )
+        self.assertNotIn("Level 1 SBOM", urls)
+        self.assertNotIn("Plain-Text Licenses", urls)
+
         keywords = project.get("keywords", [])
         self.assertEqual(len(keywords), 20, "Must have exactly 20 discoverability keywords")
+        self.assertNotIn("zero-egress", keywords)
 
         self.assertIn("tool", data)
         self.assertIn("pytest", data["tool"])
@@ -168,132 +175,121 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("--basetemp=.pytest_temp", pytest_ini.get("addopts", ""))
         self.assertIn("ruff", data["tool"])
 
-    def test_third_party_licenses_audit_recency_and_invariants(self):
-        sbom = ROOT / "THIRD_PARTY_LICENSES.md"
-        self.assertTrue(sbom.is_file(), "THIRD_PARTY_LICENSES.md must exist")
-        text = sbom.read_text(encoding="utf-8")
+    def test_third_party_licenses_are_scoped_to_direct_dependencies(self):
+        summary = ROOT / "THIRD_PARTY_LICENSES.md"
+        self.assertTrue(summary.is_file(), "direct dependency license summary must exist")
+        text = summary.read_text(encoding="utf-8")
 
-        self.assertIn("Audited:** 2026-10-03", text, "THIRD_PARTY_LICENSES.md audit date must be 2026-10-03")
-        self.assertIn("[NOTICE](NOTICE)", text)
+        self.assertIn("pyproject.toml", text)
+        self.assertIn("reviewed 2026-10-03", text)
+        self.assertIn("MIT License", text)
         self.assertIn("psutil", text)
+        self.assertIn(">=7.2,<8", text)
         self.assertIn("BSD-3-Clause", text)
-        self.assertIn("Zero-Egress", text)
-        self.assertIn("RunAsInvoker", text)
+        self.assertIn("hatchling", text)
+        self.assertIn("pytest", text)
+        self.assertIn("ruff", text)
+        self.assertIn("| Development | `ruff` | `>=0.5.0` | MIT |", text)
+        self.assertNotIn("Apache-2.0", text)
+        self.assertIn("does not enumerate transitive dependencies", text)
+        self.assertNotIn("SBOM", text)
+        self.assertNotIn("INV-SLA-10", text)
+        self.assertNotIn("Zero-Egress", text)
 
-        expected_invariants = [
-            "INV-LOCAL-01",
-            "INV-SEC-02",
-            "INV-PARENT-03",
-            "INV-STABLE-04",
-            "INV-HANDLE-05",
-            "INV-ALLOW-06",
-            "INV-NOTREE-07",
-            "INV-AUDIT-08",
-            "INV-AGE-09",
-            "INV-SLA-10",
-        ]
-        for inv_code in expected_invariants:
-            self.assertIn(inv_code, text, f"Missing invariant code: {inv_code}")
+        companion = ROOT / "THIRD_PARTY_LICENSES.txt"
+        self.assertTrue(companion.is_file(), "plain-text direct dependency summary must exist")
+        companion_text = companion.read_text(encoding="utf-8")
+        for expected in ["psutil", "BSD-3-Clause", "hatchling", "pytest", "ruff"]:
+            self.assertIn(expected, companion_text)
+        self.assertIn("ruff >=0.5.0 - MIT", companion_text)
+        self.assertNotIn("Apache-2.0", companion_text)
+        self.assertIn("does not enumerate transitive dependencies", companion_text)
+        self.assertNotIn("SBOM", companion_text)
+        self.assertNotIn("INV-SLA-10", companion_text)
 
-        # Level 1 SBOM plain-text companion
-        sbom_txt = ROOT / "THIRD_PARTY_LICENSES.txt"
-        self.assertTrue(sbom_txt.is_file(), "THIRD_PARTY_LICENSES.txt must exist")
-        txt_content = sbom_txt.read_text(encoding="utf-8")
-        self.assertIn("Audit Date: 2026-10-03", txt_content)
-        self.assertIn("Stand 2026-10-03", txt_content)
-        self.assertIn("psutil", txt_content)
-        self.assertIn("BSD-3-Clause", txt_content)
-        self.assertIn("Python Standard Library", txt_content)
-        for inv_code in expected_invariants:
-            self.assertIn(inv_code, txt_content, f"Missing invariant in txt companion: {inv_code}")
-
-
-    def test_security_sla_and_statutory_disclaimer(self):
+    def test_security_policy_has_no_unpromised_sla_or_statutory_claim(self):
         security = ROOT / "SECURITY.md"
         self.assertTrue(security.is_file(), "SECURITY.md must exist")
         text = security.read_text(encoding="utf-8")
-
-        self.assertTrue(
-            "48 hours" in text or "48-hour" in text, "Missing 48h response SLA in SECURITY.md"
-        )
-        self.assertIn("5 business days", text)
         self.assertIn("security@dev-bricks.org", text)
         self.assertIn("security@open-bricks.org", text)
-        self.assertIn("521 BGB", text)
+        self.assertIn("does not promise", text)
+        for withdrawn in ["48 hours", "48-hour", "5 business days", "INV-SLA-10", "521 BGB"]:
+            self.assertNotIn(withdrawn, text)
 
-    def test_documentation_18_point_bilingual_parity(self):
-        readme_en = ROOT / "README.md"
-        readme_de = ROOT / "README_de.md"
-        self.assertTrue(readme_en.is_file(), "README.md must exist")
-        self.assertTrue(readme_de.is_file(), "README_de.md must exist")
-
-        en_text = readme_en.read_text(encoding="utf-8")
-        de_text = readme_de.read_text(encoding="utf-8")
-
-        # Cross-linking between languages
-        self.assertIn("README_de.md", en_text)
-        self.assertIn("README.md", de_text)
-
-        # 18-Point section number check in both documents
-        for i in range(1, 19):
-            prefix = f"## {i}. "
-            self.assertIn(prefix, en_text, f"README.md missing section header prefix '{prefix}'")
-            self.assertIn(prefix, de_text, f"README_de.md missing section header prefix '{prefix}'")
-
-        # Reciprocal anchor aliases (sec-01 to sec-18)
-        for i in range(1, 19):
-            anchor = f'id="sec-{i:02d}"'
-            self.assertIn(anchor, en_text, f"README.md missing anchor {anchor}")
-            self.assertIn(anchor, de_text, f"README_de.md missing anchor {anchor}")
-
-        # Governance, Statutory & Badges checks
-        self.assertIn("521 BGB", en_text)
-        self.assertIn("521 BGB", de_text)
-        self.assertIn("Attribution-NOTICE-blue.svg", en_text)
-        self.assertIn("Attribution-NOTICE-blue.svg", de_text)
-        self.assertIn("Verified: 2026-10-03", en_text)
-        self.assertIn("Geprüft: 2026-10-03", de_text)
-        self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", en_text)
-        self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", de_text)
-        self.assertIn("CONTRIBUTING.md", en_text)
-        self.assertIn("CONTRIBUTING.md", de_text)
-
-        # Invariants INV-LOCAL-01 through INV-SLA-10 in both
-        for inv_code in [
-            "INV-LOCAL-01",
-            "INV-SEC-02",
-            "INV-PARENT-03",
-            "INV-STABLE-04",
-            "INV-HANDLE-05",
-            "INV-ALLOW-06",
-            "INV-NOTREE-07",
-            "INV-AUDIT-08",
-            "INV-AGE-09",
-            "INV-SLA-10",
+    def test_contributing_guidance_is_bilingual_and_bounded(self):
+        path = ROOT / "CONTRIBUTING.md"
+        self.assertTrue(path.is_file(), "CONTRIBUTING.md must exist")
+        source = path.read_text(encoding="utf-8")
+        self.assertIn('<a id="english"></a>', source)
+        self.assertIn('<a id="deutsch"></a>', source)
+        self.assertIn("python -m pytest -ra -v .", source)
+        self.assertIn("Führe die vollständige Testsammlung", source)
+        self.assertEqual(source.count("**") % 2, 0, "Bold markers must be balanced")
+        for withdrawn in ["RunAsInvoker", "§ 521 BGB", "48-hour", "5-business-day"]:
+            self.assertNotIn(withdrawn, source)
+        self.assertNotRegex(source, r"(?i)\b[A-Z]:\\", "Contributor instructions must not embed host paths")
+        for label in [
+            "Configured entrypoint matching",
+            "Parent-state checks",
+            "Separate observations",
+            "Identity and CPU comparison",
+            "Minimum process age",
+            "Retained process handle",
+            "Individual action",
+            "Pre-termination intent record",
+            "Write-failure handling",
         ]:
-            self.assertIn(inv_code, en_text, f"README.md missing {inv_code}")
-            self.assertIn(inv_code, de_text, f"README_de.md missing {inv_code}")
+            self.assertIn(label, source)
+        self.assertEqual(source.count("\n1. "), 2, "Each language should start its safeguards list once")
 
-        # Target Personas
-        for persona in ["[PERSONA-01]", "[PERSONA-02]", "[PERSONA-03]", "[PERSONA-04]"]:
-            self.assertIn(persona, en_text, f"README.md missing {persona}")
-            self.assertIn(persona, de_text, f"README_de.md missing {persona}")
+    def test_documentation_six_languages_share_structure_and_navigation(self):
+        files = ["README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md"]
+        documents = {}
+        for filename in files:
+            path = ROOT / filename
+            self.assertTrue(path.is_file(), f"{filename} must exist")
+            documents[filename] = path.read_text(encoding="utf-8")
+
+        for filename, source in documents.items():
+            self.assertIn("CONTRIBUTING.md", source, f"{filename} must link to contributor guidance")
+            self.assertIn("2026-10-03", "\n".join(source.splitlines()[:25]), f"{filename} must date the source review")
+            for other in files:
+                if other != filename:
+                    self.assertIn(other, source, f"{filename} must link to {other}")
+
+            lines = source.splitlines()
+            for number in range(1, 19):
+                heading_prefix = f"## {number}. "
+                headings = [line for line in lines if line.startswith(heading_prefix)]
+                self.assertEqual(len(headings), 1, f"{filename} must have section {number} exactly once")
+                anchor = f'id="sec-{number:02d}"'
+                self.assertEqual(source.count(anchor), 1, f"{filename} must have {anchor} exactly once")
+
+            fences = sum(line.startswith("```") for line in lines)
+            self.assertEqual(fences, 18, f"{filename} must contain nine balanced code blocks")
+
+            nav_start = next(i for i, line in enumerate(lines) if line.startswith("### "))
+            nav_end = next(i for i in range(nav_start + 1, len(lines)) if lines[i].strip() == "---")
+            nav_targets = []
+            for line in lines[nav_start:nav_end]:
+                marker = "](#"
+                if marker in line:
+                    nav_targets.append(line.split(marker, 1)[1].split(")", 1)[0])
+            self.assertEqual(len(nav_targets), 18, f"{filename} navigation must link to all sections")
+            for target in nav_targets:
+                self.assertIn(f'id="{target}"', source, f"{filename} navigation target #{target} must exist")
 
     def test_mermaid_diagrams_syntax_and_hygiene(self):
-        readme_en = ROOT / "README.md"
-        readme_de = ROOT / "README_de.md"
-
-        for doc_path in [readme_en, readme_de]:
-            text = doc_path.read_text(encoding="utf-8")
-            self.assertIn("flowchart TD", text, f"{doc_path.name} missing flowchart TD")
-            self.assertIn("sequenceDiagram", text, f"{doc_path.name} missing sequenceDiagram")
-            self.assertIn("autonumber", text, f"{doc_path.name} sequenceDiagram missing autonumber")
-
-            # Extract sequenceDiagram blocks and assert 0 semicolons
-            seq_matches = re.findall(r"```mermaid\s+sequenceDiagram(.*?)```", text, re.DOTALL)
-            self.assertTrue(len(seq_matches) >= 1, f"{doc_path.name} missing sequenceDiagram block")
-            for block in seq_matches:
-                self.assertNotIn(";", block, f"{doc_path.name} sequence diagram must not contain semicolons")
+        for filename in ["README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md"]:
+            source = (ROOT / filename).read_text(encoding="utf-8")
+            self.assertEqual(source.count("```mermaid"), 2, f"{filename} must retain two diagrams")
+            self.assertIn("flowchart TD", source, f"{filename} missing flowchart TD")
+            self.assertIn("sequenceDiagram", source, f"{filename} missing sequenceDiagram")
+            self.assertIn("autonumber", source, f"{filename} sequenceDiagram missing autonumber")
+            sequences = re.findall(r"```mermaid\s+sequenceDiagram(.*?)```", source, re.DOTALL)
+            self.assertEqual(len(sequences), 1, f"{filename} must have one sequence diagram")
+            self.assertNotIn(";", sequences[0], f"{filename} sequence diagram must not contain semicolons")
 
     def test_changelog_has_unreleased_and_frozen_version(self):
         changelog = ROOT / "CHANGELOG.md"
@@ -301,98 +297,57 @@ class MetadataContractTests(unittest.TestCase):
         text = changelog.read_text(encoding="utf-8")
 
         self.assertIn("## [Unreleased]", text)
+        self.assertIn("## Historical Unreleased Entry (2026-10-03; corrected above)", text)
+        self.assertIn("## Historical Unreleased Entry (2026-10-01)", text)
+        self.assertEqual(text.count("## [Unreleased]"), 1)
+        self.assertIn("are withdrawn", text)
         self.assertIn("## 0.1.0", text)
         self.assertNotIn("## 0.2.0", text, "Version bump forbidden in Pfad A/B")
 
-    def test_llms_txt_up_to_date(self):
-        llms = ROOT / "llms.txt"
-        self.assertTrue(llms.is_file(), "llms.txt must exist")
-        text = llms.read_text(encoding="utf-8")
+    def test_llms_txt_reflects_bounded_source_scope(self):
+        path = ROOT / "llms.txt"
+        self.assertTrue(path.is_file(), "llms.txt must exist")
+        source = path.read_text(encoding="utf-8")
+        self.assertIn("Source version declared in `pyproject.toml`: 0.1.0", source)
+        for filename in ["README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md"]:
+            self.assertIn(filename, source)
+        self.assertIn("not an OS-level network block", source)
+        self.assertIn("not a complete transitive dependency inventory", source)
+        self.assertIn("No response-time SLA", source)
+        self.assertIn("Last-checked: 2026-10-03", source)
+        self.assertIn("CONTRIBUTING.md", source)
+        for withdrawn in ["INV-SLA-10", "521 BGB", "Level 1 SBOM", "100% Local-First & Zero Egress"]:
+            self.assertNotIn(withdrawn, source)
 
-        self.assertIn("Last-checked: 2026-10-03", text, "llms.txt Last-checked date must be 2026-10-03")
-        self.assertIn("0.1.0", text)
-        self.assertIn("521 BGB", text)
-        self.assertIn("INV-LOCAL-01", text)
-        self.assertIn("INV-SLA-10", text)
-        self.assertIn("[PERSONA-01]", text)
-        self.assertIn("THIRD_PARTY_LICENSES.txt", text)
-        self.assertIn("CONTRIBUTING.md", text)
+    def test_marketing_log_is_private_and_not_published(self):
+        gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn("MARKETING-LOG.txt", gitignore)
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        self.assertNotIn("Marketing Log", project.get("project", {}).get("urls", {}))
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", "MARKETING-LOG.txt"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(tracked.returncode, 0, "private marketing log must not be tracked")
 
-    def test_marketing_log_present_and_valid(self):
-        mkt = ROOT / "MARKETING-LOG.txt"
-        self.assertTrue(mkt.is_file(), "MARKETING-LOG.txt must exist")
-        text = mkt.read_text(encoding="utf-8")
-
-        self.assertIn("Target Repo: dev-bricks/zombie-killer-tray", text)
-        self.assertIn("ACTION: PFAD_B_MARKETING", text)
-        self.assertIn("ACTION: PFAD_A_HYGIENE", text)
-        self.assertIn("2026-10-01", text)
-        self.assertIn("2026-10-03", text)
-        self.assertIn("Version: 0.1.0", text)
-        self.assertIn("[PERSONA-01]", text)
-        self.assertIn("INV-LOCAL-01", text)
-
-    def test_ascii_four_view_architectural_topology_parity(self):
-        readme_en = ROOT / "README.md"
-        readme_de = ROOT / "README_de.md"
-
-        en_text = readme_en.read_text(encoding="utf-8")
-        de_text = readme_de.read_text(encoding="utf-8")
-
-        expected_en_views = [
-            "VIEW 1: ENTRYPOINTS, USER INTERFACES & TRAY RUNTIMES",
-            "VIEW 2: ZOMBIE REAPER SOVEREIGN CORE ENGINE & PID VERIFICATION",
-            "VIEW 3: RUNTIME PERSISTENCE, FORENSIC JSONL AUDIT & KERNEL OBJECT LOCKS",
-            "VIEW 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE",
+    def test_public_docs_do_not_restore_withdrawn_assurance_claims(self):
+        public_docs = [
+            "README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md",
+            "SECURITY.md", "llms.txt", "CONTRIBUTING.md", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt",
         ]
-        for view_header in expected_en_views:
-            self.assertIn(view_header, en_text, f"README.md missing ASCII topology view: {view_header}")
-
-        expected_de_sichten = [
-            "SICHT 1: STARTER, BENUTZEROBERFLÄCHEN & TRAY-LAUFZEITEN",
-            "SICHT 2: ZOMBIE-REAPER KERN-ENGINE & PID-VERIFIKATION",
-            "SICHT 3: LAUFZEIT-PERSISTENZ, FORENSISCHES JSONL-AUDIT & KERNEL-SPERREN",
-            "SICHT 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE",
-        ]
-        for sicht_header in expected_de_sichten:
-            self.assertIn(sicht_header, de_text, f"README_de.md missing ASCII topology sicht: {sicht_header}")
-
-    def test_contributing_bilingual_guidelines_and_invariants(self):
-        contrib = ROOT / "CONTRIBUTING.md"
-        self.assertTrue(contrib.is_file(), "CONTRIBUTING.md must exist in repository root")
-        text = contrib.read_text(encoding="utf-8")
-
-        # Bilingual navigation and sections
-        self.assertIn("#english", text)
-        self.assertIn("#deutsch", text)
-        self.assertIn("## English", text)
-        self.assertIn("## Deutsch", text)
-
-        # 10 Governance and Runtime Invariants
-        expected_invariants = [
-            "INV-LOCAL-01",
-            "INV-SEC-02",
-            "INV-PARENT-03",
-            "INV-STABLE-04",
-            "INV-HANDLE-05",
-            "INV-ALLOW-06",
-            "INV-NOTREE-07",
-            "INV-AUDIT-08",
-            "INV-AGE-09",
-            "INV-SLA-10",
-        ]
-        for inv_code in expected_invariants:
-            self.assertIn(inv_code, text, f"Missing {inv_code} in CONTRIBUTING.md")
-
-        # Workflow, legal and security commitments
-        self.assertIn("RunAsInvoker", text)
-        self.assertIn("Plan D", text)
-        self.assertIn("C:\\_Local_DEV\\repos\\zombie-killer-tray", text)
-        self.assertIn("521 BGB", text)
-        self.assertIn("T-20260920-167562623", text)
-        self.assertIn("security@dev-bricks.org", text)
-        self.assertIn("security@open-bricks.org", text)
-
+        source = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in public_docs).casefold()
+        for withdrawn in [
+            "inv-sla-10",
+            "100% zero-copyleft",
+            "zero-egress governance",
+            "level 1 sbom",
+            "5-business-day triage commitment",
+            "within 48 hours",
+        ]:
+            self.assertNotIn(withdrawn, source)
 
 if __name__ == "__main__":
     unittest.main()

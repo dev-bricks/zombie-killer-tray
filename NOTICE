@@ -4,4 +4,4 @@ Copyright (c) 2026 Lukas Geiger
 This product is developed as part of the dev-bricks organization under the open-bricks umbrella.
 Maintained by Lukas Geiger and dev-bricks contributors.
 Licensed under the MIT License. See LICENSE for details.
-Third-party dependency licenses and transparency inventory are documented in THIRD_PARTY_LICENSES.md (plain-text companion: THIRD_PARTY_LICENSES.txt).
+A scoped summary of directly declared dependency licenses is documented in THIRD_PARTY_LICENSES.md (plain-text companion: THIRD_PARTY_LICENSES.txt).

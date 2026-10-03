@@ -8,7 +8,7 @@ _SRC = str(Path(__file__).resolve().parent / "src")
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import zombie_killer_tray.settings as s  # noqa: E402
+import zombie_killer_tray.settings as s
 
 
 class IntervalChoicesTests(unittest.TestCase):

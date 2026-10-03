@@ -5,17 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2026-10-03
+## [Unreleased]
+
+### Changed
+- Replaced overstated process-safety, network, audit, support, and license claims with descriptions scoped to source behavior and the listed direct dependencies.
+- Added six-language tray documentation and a bilingual contributor guide with reproducible local checks.
+- Removed the internal marketing log from tracked package and repository metadata while retaining it locally as an ignored file.
+- Kept the declared source version at 0.1.0; no package release or version change is recorded here.
+
+### Correction (2026-10-03)
+- The historical entry's machine-specific local clone path is redacted in this public copy.
+- The current README badges label the date as a source review; they do not imply security certification or a complete audit.
+- The dated historical entry below is retained for traceability. Its statements about zero-egress guarantees, RunAsInvoker, Plan D host paths, § 521 BGB, response-time commitments, and complete SBOM or invariant compliance were not supported as written and are withdrawn. The current public documents state observed behavior and its limits; they make no compliance certification, response-time SLA, or complete transitive dependency claim.
+
+## Historical Unreleased Entry (2026-10-03; corrected above)
+
+> The following entry is retained as the original dated record. Its inaccurate assurances are superseded by the correction above.
 
 ### Added
-- Repository Hygiene & Contributing Guidelines: Canonical bilingual `CONTRIBUTING.md` guidelines (English / Deutsch) detailing the 10 governance and runtime invariants (`INV-LOCAL-01` through `INV-SLA-10`), unprivileged `RunAsInvoker` mode (`INV-SEC-02`), Plan D local development workflow (`C:\_Local_DEV\repos\zombie-killer-tray` as Source of Truth), § 521 BGB Gefälligkeitsrecht statutory disclaimer, and 48-hour security response SLA.
-- PEP 621 Metadata Alignment: Registered `"Contributing"` URL under `[project.urls]` in `pyproject.toml` and added `"CONTRIBUTING.md"` to the `license-files` manifest array.
+- Repository Hygiene & Contributing Guidelines: Canonical bilingual `CONTRIBUTING.md` guidelines (English / Deutsch) detailing the 10 governance and runtime invariants (`INV-LOCAL-01` through `INV-SLA-10`), unprivileged `RunAsInvoker` mode (`INV-SEC-02`), Plan D local development workflow (`[host-specific local clone path omitted]` as Source of Truth), § 521 BGB Gefälligkeitsrecht statutory disclaimer, and 48-hour security response SLA.
+- PEP 621 Metadata Alignment: Registered the `Contributing` URL under `[project.urls]` in `pyproject.toml`. `CONTRIBUTING.md` is contributor documentation, not a license file.
 - Multi-Host Lock & OS Defense: Hardened `.gitignore` with Windows system files (`desktop.ini`, `ehthumbs.db`), editor backup patterns (`*.swp`, `*.swo`, `*~`), transient agent tasks (`TASKPLAN_*.md`, `*-TASKPLAN*`), multi-host collision tokens (`*-ASUS-GEI.*`, `*-IDEAPAD-GEI.*`), and canonical lock prefixes (`LOCK.dev.*`, `LOCK.antigravity.*`, `LOCK.bugsearch.*`).
 - Level 1 SBOM Recency Re-Audit (Stand 2026-10-03): Re-certified `THIRD_PARTY_LICENSES.md` and plain-text companion `THIRD_PARTY_LICENSES.txt` with zero copyleft, 100% permissive runtime stack (`psutil` BSD-3-Clause, PSFL-2.0, MIT), and complete invariant compliance.
 - Badges & Documentation Synchronization: Updated `Verified: 2026-10-03` / `Geprüft: 2026-10-03` and `Last Checked: 2026-10-03` / `Stand: 2026-10-03` status badges across `README.md` and `README_de.md`; synchronized `llms.txt` RAG context (Last-checked: 2026-10-03).
-- Automated Contract Tests: Expanded `tests/test_metadata.py` with contract tests for bilingual `CONTRIBUTING.md` guidelines, PEP 621 Contributing URL and license-file registration, hardened `.gitignore` defense patterns, and 2026-10-03 audit recency.
+- Automated Contract Tests: Expanded `tests/test_metadata.py` with checks for bilingual `CONTRIBUTING.md` guidance, the PEP 621 Contributing URL, `.gitignore` patterns, and the dated documentation review.
 
-## [Unreleased] - 2026-10-01
+## Historical Unreleased Entry (2026-10-01)
 
 ### Added
 - Visual Architecture: ASCII Four-View Architectural Topology projection in Section 2 of `README.md` and `README_de.md` (Views 1-4 / Sichten 1-4: Entrypoints & Tray Runtimes, Zombie Reaper Sovereign Core Engine, Runtime Persistence & Kernel Locks, Air-Gap Defense Perimeter & Zero-Egress Governance).
@@ -58,6 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `SECURITY.md` with dual-tier Security Response SLA (48h response, 5 business days triage) and canonical contacts.
 - Updated `llms.txt` with current architectural context, 18-point navigation index, and test baselines.
 - Cleaned Win32 helper methods and code formatting in `zombie_killer.py` and `test_zombie_killer.py`.
+
+### Corrected (2026-10-03)
+
+- Earlier text in this Unreleased record and associated project documents overstated offline and zero-egress boundaries, air-gap protection, universal safety guarantees, security response timing, license completeness, and a legal outcome under § 521 BGB. Those assertions are withdrawn. Current documents describe observed source behavior with explicit limits; no response-time SLA, compliance certification, or complete transitive dependency inventory is claimed.
+- The tray menu, tooltip, and language selector support English, German, Spanish, Simplified Chinese, Japanese, and Russian. The six README files describe the corresponding user-facing languages.
+- The default pytest collection includes the repository-root tests and metadata tests together. License notes and package links are scoped to directly declared dependencies; Ruff's recorded license reference now points to its upstream MIT license. The internal marketing log is no longer tracked and is ignored locally.
+
 
 ## 0.1.0 - 2026-09-21
 

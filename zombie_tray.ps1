@@ -1,6 +1,7 @@
 param([switch]$Preview)
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+Import-Module (Join-Path $root 'zombie_tray_ui.psm1') -Force
 $killer = Join-Path $root 'zombie_killer.py'
 $log = Join-Path $root 'zombie_tray.log'
 $stateFile = Join-Path $root 'zombie_state.json'
@@ -17,53 +18,9 @@ $currentAutomatic = $false
 $currentInterval = 1800
 $currentMinAge = 1800
 $currentLanguage = 'en'
-# User-facing tray strings only (menu, tooltip). Write-TrayLog stays English --
-# it is a technical/audit trail (matches zombie_events.jsonl's English event
-# schema), not conversational UI text; translating it would add churn for
-# an audience that already reads the English log lines as data, not prose.
-$uUmlaut = [char]0x00FC
-$oUmlaut = [char]0x00F6
-$Strings = @{
-    de = @{
-        TooltipIdle    = 'Zombie-Killer: sichere Bereinigung'
-        TooltipAutoOn  = 'Zombie-Killer: Auto an | Intervall {0} | Alter {1}'
-        TooltipAutoOff = 'Zombie-Killer: Automatik aus'
-        MenuManual     = 'Jetzt pr' + $uUmlaut + 'fen und veraltete MCPs bereinigen'
-        MenuAuto       = 'Automatik'
-        MenuInterval   = 'Intervall'
-        MenuMinAge     = 'Mindestwartezeit'
-        MenuLanguage   = 'Sprache'
-        MenuLangDe     = 'Deutsch'
-        MenuLangEn     = 'Englisch'
-        MenuLog        = 'Log ' + $oUmlaut + 'ffnen'
-        MenuQuit       = 'Tray beenden'
-    }
-    en = @{
-        TooltipIdle    = 'Zombie Killer: safe cleanup'
-        TooltipAutoOn  = 'Zombie Killer: Auto on | Interval {0} | Age {1}'
-        TooltipAutoOff = 'Zombie Killer: Automatic off'
-        MenuManual     = 'Check now and clean up stale MCPs'
-        MenuAuto       = 'Automatic'
-        MenuInterval   = 'Interval'
-        MenuMinAge     = 'Minimum age'
-        MenuLanguage   = 'Language'
-        MenuLangDe     = 'German'
-        MenuLangEn     = 'English'
-        MenuLog        = 'Open log'
-        MenuQuit       = 'Quit tray'
-    }
-}
-function Get-Str([string]$key) { return $script:Strings[$script:currentLanguage][$key] }
-function Get-DefaultLanguage {
-    # System UI language, German if it's German, English otherwise -- overridden
-    # by a persisted explicit choice in zombie_state.json (see Get-AutomodeSettings).
-    try {
-        if ((Get-UICulture).TwoLetterISOLanguageName -eq 'de') { return 'de' }
-    } catch {
-        # Culture lookup is best-effort; any failure just falls through to 'en'.
-    }
-    return 'en'
-}
+# User-facing strings are kept in a small module that can be tested without starting the tray worker.
+function Get-Str([string]$key) { return Get-ZombieTrayString -Language $script:currentLanguage -Key $key }
+function Get-DefaultLanguage { return Get-ZombieTrayDefaultLanguage }
 function Write-TrayLog([string]$message) {
     Add-Content -LiteralPath $log -Value ((Get-Date -Format o) + ' ' + $message) -Encoding UTF8
 }
@@ -111,22 +68,13 @@ function Get-AutomodeSettings([array]$allowedInterval, [array]$allowedMinAge) {
             if (($ma -is [int] -or $ma -is [int64]) -and ($allowedMinAge -contains [int64]$ma)) {
                 $minAgeSeconds = [int]$ma
             }
-            if ($data.language -is [string] -and $script:Strings.ContainsKey($data.language)) {
-                $language = $data.language
+            if ($data.language -is [string]) {
+                $language = Resolve-ZombieTrayLanguage -SavedLanguage $data.language -CultureName $language
             }
         }
     }
     return [PSCustomObject]@{ Automatic = $automatic; IntervalSeconds = $intervalSeconds
         MinAgeSeconds = $minAgeSeconds; Language = $language }
-}
-function Save-AutomodeSettings([bool]$automatic, [int]$intervalSeconds, [int]$minAgeSeconds, [string]$language) {
-    $payload = [PSCustomObject]@{
-        automatic = $automatic
-        interval_seconds = $intervalSeconds
-        min_age_seconds = $minAgeSeconds
-        language = $language
-    } | ConvertTo-Json -Compress
-    Set-Content -LiteralPath $stateFile -Value $payload -Encoding UTF8
 }
 function Start-Worker([int]$intervalSeconds, [int]$minAgeSeconds) {
     # A single long-lived worker preserves observed parent identities. It uses Win32
@@ -239,16 +187,11 @@ try {
         Write-TrayLog ('custom tray icon failed to load, using fallback: {0}' -f $_.Exception.Message)
         $notify.Icon = [System.Drawing.SystemIcons]::Shield
     }
-    $notify.Text = Get-Str 'TooltipIdle'
+    [void](Set-ZombieTrayTooltip -NotifyIcon $notify -Language $currentLanguage -Automatic $false -Mode idle)
     $notify.Visible = $true
 
     function Update-Tooltip {
-        if ($script:currentAutomatic) {
-            $script:notify.Text = ((Get-Str 'TooltipAutoOn') `
-                -f $script:intervalLabelBySeconds[$script:currentInterval], $script:minAgeLabelBySeconds[$script:currentMinAge])
-        } else {
-            $script:notify.Text = Get-Str 'TooltipAutoOff'
-        }
+        [void](Set-ZombieTrayTooltip -NotifyIcon $script:notify -Language $script:currentLanguage -Automatic $script:currentAutomatic -IntervalLabel $script:intervalLabelBySeconds[$script:currentInterval] -MinAgeLabel $script:minAgeLabelBySeconds[$script:currentMinAge])
     }
     Update-Tooltip
 
@@ -283,44 +226,43 @@ try {
 
     $languageMenu = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Str 'MenuLanguage'))
     [void]$menu.Items.Add($languageMenu)
-    $langDe = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Str 'MenuLangDe'))
-    $langDe.Tag = 'de'
-    $langEn = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Str 'MenuLangEn'))
-    $langEn.Tag = 'en'
-    $allLanguageItems = @($langDe, $langEn)
-    foreach ($item in $allLanguageItems) {
-        $item.Checked = ($item.Tag -eq $currentLanguage)
-        [void]$languageMenu.DropDownItems.Add($item)
-    }
+    $allLanguageItems = New-ZombieTrayLanguageSelector -Menu $languageMenu -CurrentLanguage $currentLanguage
 
     $open = $menu.Items.Add((Get-Str 'MenuLog'))
     $quit = $menu.Items.Add((Get-Str 'MenuQuit'))
     $notify.ContextMenuStrip = $menu
 
-    # Every menu item's own .Text is re-set to its label in the NEW language --
-    # rebuilding the whole menu on a language switch would drop the click
-    # handlers already wired below, so items are relabeled in place instead.
-    function Update-MenuLanguage {
-        $script:manual.Text = Get-Str 'MenuManual'
-        $script:autoToggle.Text = Get-Str 'MenuAuto'
-        $script:intervalMenu.Text = Get-Str 'MenuInterval'
-        $script:minAgeMenu.Text = Get-Str 'MenuMinAge'
-        $script:languageMenu.Text = Get-Str 'MenuLanguage'
-        $script:langDe.Text = Get-Str 'MenuLangDe'
-        $script:langEn.Text = Get-Str 'MenuLangEn'
-        $script:open.Text = Get-Str 'MenuLog'
-        $script:quit.Text = Get-Str 'MenuQuit'
-        Update-Tooltip
+    $script:trayLanguageState = [PSCustomObject]@{
+        Automatic = $script:currentAutomatic
+        IntervalSeconds = $script:currentInterval
+        MinAgeSeconds = $script:currentMinAge
+        Language = $script:currentLanguage
     }
+    $script:trayLanguageControls = @{
+        Manual = $manual
+        Auto = $autoToggle
+        Interval = $intervalMenu
+        MinAge = $minAgeMenu
+        Language = $languageMenu
+        Log = $open
+        Quit = $quit
+        LanguageItems = $allLanguageItems
+    }
+    Update-ZombieTrayMenuLanguage -Language $script:currentLanguage -Controls $script:trayLanguageControls -NotifyIcon $notify -Automatic $script:currentAutomatic -IntervalSeconds $script:currentInterval -MinAgeSeconds $script:currentMinAge -IntervalLabelBySeconds $script:intervalLabelBySeconds -MinAgeLabelBySeconds $script:minAgeLabelBySeconds
+    $saveLanguageSettings = {
+        param($automatic, $intervalSeconds, $minAgeSeconds, $language)
+        Save-AutomodeSettings -Path $stateFile -Automatic ([bool]$automatic) -IntervalSeconds ([int]$intervalSeconds) -MinAgeSeconds ([int]$minAgeSeconds) -Language ([string]$language)
+    }.GetNewClosure()
+    $onLanguageChanged = {
+        param($language)
+        $script:currentLanguage = [string]$language
+        Write-TrayLog ('language set to {0}' -f $language)
+    }
+    Register-ZombieTrayLanguageSelection -Items $allLanguageItems -State $script:trayLanguageState -Controls $script:trayLanguageControls -NotifyIcon $notify -IntervalLabelBySeconds $script:intervalLabelBySeconds -MinAgeLabelBySeconds $script:minAgeLabelBySeconds -SaveSettings $saveLanguageSettings -OnLanguageChanged $onLanguageChanged
 
-    $manual.Add_Click({
-        $manual.Enabled = $false
-        try { Invoke-ManualCleanup } finally { $manual.Enabled = $true }
-    })
-    $autoToggle.Add_Click({
-        $script:currentAutomatic = -not $script:currentAutomatic
-        $this.Checked = $script:currentAutomatic
-        Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge $script:currentLanguage
+    $onAutomaticChanged = {
+        param($automatic)
+        $script:currentAutomatic = [bool]$automatic
         if ($script:currentAutomatic) {
             Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
         } else {
@@ -328,45 +270,33 @@ try {
         }
         Update-Tooltip
         Write-TrayLog ('automatic mode toggled to {0}' -f $script:currentAutomatic)
+    }
+    $onIntervalChanged = {
+        param($selected)
+        $script:currentInterval = [int]$selected
+        Update-Tooltip
+        Write-TrayLog ('automode interval set to {0}s' -f $script:currentInterval)
+        if ($script:currentAutomatic) {
+            Stop-Worker
+            Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
+        }
+    }
+    $onMinAgeChanged = {
+        param($selected)
+        $script:currentMinAge = [int]$selected
+        Update-Tooltip
+        Write-TrayLog ('automode min-age set to {0}s' -f $script:currentMinAge)
+        if ($script:currentAutomatic) {
+            Stop-Worker
+            Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
+        }
+    }
+    Register-ZombieTraySettingSelection -AutoItem $autoToggle -IntervalItems $allIntervalItems -MinAgeItems $allMinAgeItems -State $script:trayLanguageState -SaveSettings $saveLanguageSettings -OnAutomaticChanged $onAutomaticChanged -OnIntervalChanged $onIntervalChanged -OnMinAgeChanged $onMinAgeChanged
+
+    $manual.Add_Click({
+        $manual.Enabled = $false
+        try { Invoke-ManualCleanup } finally { $manual.Enabled = $true }
     })
-    foreach ($item in $allLanguageItems) {
-        $item.Add_Click({
-            $selected = [string]$this.Tag
-            foreach ($sibling in $allLanguageItems) { $sibling.Checked = ($sibling -eq $this) }
-            $script:currentLanguage = $selected
-            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge $script:currentLanguage
-            Update-MenuLanguage
-            Write-TrayLog ('language set to {0}' -f $selected)
-        })
-    }
-    foreach ($item in $allIntervalItems) {
-        $item.Add_Click({
-            $selected = [int]$this.Tag
-            foreach ($sibling in $allIntervalItems) { $sibling.Checked = ($sibling -eq $this) }
-            $script:currentInterval = $selected
-            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge $script:currentLanguage
-            Update-Tooltip
-            Write-TrayLog ('automode interval set to {0}s' -f $selected)
-            if ($script:currentAutomatic) {
-                Stop-Worker
-                Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
-            }
-        })
-    }
-    foreach ($item in $allMinAgeItems) {
-        $item.Add_Click({
-            $selected = [int]$this.Tag
-            foreach ($sibling in $allMinAgeItems) { $sibling.Checked = ($sibling -eq $this) }
-            $script:currentMinAge = $selected
-            Save-AutomodeSettings $script:currentAutomatic $script:currentInterval $script:currentMinAge $script:currentLanguage
-            Update-Tooltip
-            Write-TrayLog ('automode min-age set to {0}s' -f $selected)
-            if ($script:currentAutomatic) {
-                Stop-Worker
-                Start-Worker -intervalSeconds $script:currentInterval -minAgeSeconds $script:currentMinAge
-            }
-        })
-    }
     $open.Add_Click({ Start-Process notepad.exe -ArgumentList ('"{0}"' -f $log) })
     $quit.Add_Click({ [System.Windows.Forms.Application]::Exit() })
     $notify.Add_DoubleClick({ Invoke-ManualCleanup })

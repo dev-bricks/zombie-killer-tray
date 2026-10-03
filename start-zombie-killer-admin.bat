@@ -20,7 +20,13 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo Zombie-Killer-Tray wurde zum Administratorstart uebergeben.
+for /f "tokens=2 delims=:" %%a in ('chcp') do set "OLDCP=%%a"
+set "OLDCP=%OLDCP:.=%"
+set "OLDCP=%OLDCP: =%"
+if not defined OLDCP exit /b 1
+chcp 65001 >nul
+echo Zombie-Killer-Tray wurde zum Administratorstart übergeben.
+chcp %OLDCP% >nul
 exit /b 0
 
 :check

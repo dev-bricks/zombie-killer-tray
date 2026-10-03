@@ -1,520 +1,349 @@
 # Zombie Killer Tray
 
-![Zombie Killer Tray Banner](assets/banner.png)
+> Ein zurückhaltendes Windows-Programm für den Infobereich: Es prüft ausgewählte verwaiste Prozesse von Model Context Protocol (MCP)-Servern und Sprachservern und kann sie nach den vorgesehenen Prüfungen einzeln beenden. Ganze Prozessbäume werden nicht pauschal beendet.
 
-> Konservatives Windows-System-Tray-Dienstprogramm zur sicheren Bereinigung verwaister Model Context Protocol (MCP) und Language-Server-Hintergrundprozesse ohne pauschale Prozessbaum-Kills.
-
-[![Attribution: NOTICE](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
+[![Namensnennung: HINWEIS](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
 [![Version: 0.1.0](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
-[![Tests: Passed](https://img.shields.io/badge/tests-passed%20%7C%20100%25-brightgreen.svg)](tests/test_metadata.py)
+[![Test-Workflow](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml)
 [![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6.svg)](#)
-[![Zero-Egress: 100% Lokal](https://img.shields.io/badge/Zero--Egress-100%25%20Lokal-success.svg)](SECURITY.md)
-[![Security Policy: Non-Elevation](https://img.shields.io/badge/Security--Policy-RunAsInvoker-informational.svg)](SECURITY.md)
-[![Security SLA: 48h / 5d](https://img.shields.io/badge/Security%20SLA-48h%20Response%20%7C%205d%20Triage-blue.svg)](SECURITY.md)
-[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Level 1 SBOM: Geprüft](https://img.shields.io/badge/Level%201%20SBOM-Plain%20Text%20Audited-blue.svg)](THIRD_PARTY_LICENSES.txt)
-[![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
-[![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
+[![Plattform: Windows](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6.svg)](#)
+[![Codestil: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Lizenz: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Direkte Abhängigkeitslizenzen](https://img.shields.io/badge/dependencies-direct%20licenses-blue.svg)](THIRD_PARTY_LICENSES.md)
+[![Ökosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
+[![Dachorganisation: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
 [![Stand: 2026-10-03](https://img.shields.io/badge/stand-2026--10--03-informational.svg)](CHANGELOG.md)
-[![Geprüft: 2026-10-03](https://img.shields.io/badge/Gepr%C3%BCft-2026--10--03-blue.svg)](CHANGELOG.md)
+[![Quellprüfung: 2026-10-03](https://img.shields.io/badge/Quellpr%C3%BCfung-2026--10--03-blue.svg)](CHANGELOG.md)
 
-[English](README.md) · [Deutsch](README_de.md)
+[Englisch](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [简体中文](README_zh.md) · [日本語](README_ja.md) · [Russisch](README_ru.md)
 
 > [!NOTE]
-> Maschinenlesbare Architektur, Invarianten und Sicherheitsrichtlinien für KI-Agenten sind in [llms.txt](llms.txt) indexiert.
+> Maschinenlesbare Hinweise zu Verhalten, Einrichtung und Grenzen des Projekts für KI-Agenten stehen in [llms.txt](llms.txt).
 
 ---
 
-### 🧭 Schnellnavigation
+### 🧭 Schnelle Navigation
 
-- [1. Überblick & Problemstellung](#ueberblick--problemstellung)
-- [2. Systemarchitektur & Topologie](#systemarchitektur--topologie)
-- [3. Vollständiger Ausführungsablauf](#vollstaendiger-ausfuehrungsablauf)
-- [4. Sicherheitsmodell & Governance-Invarianten](#sicherheitsmodell--governance-invarianten)
-- [5. Zielgruppen & Auffindbarkeit](#zielgruppen--auffindbarkeit)
-- [6. Vergleichsmatrix & Alternativen](#vergleichsmatrix--alternativen)
-- [7. Geschwister-Ökosystem & Partner-Tools](#geschwister-oekosystem--partner-tools)
-- [8. Kernfunktionen & Fähigkeiten](#kernfunktionen--faehigkeiten)
-- [9. Windows-Tray-Bedienoberfläche & Benutzererlebnis](#windows-tray-bedienoberflaeche--benutzererlebnis)
-- [10. Voraussetzungen & Plattform-Kompatibilität](#voraussetzungen--plattform-kompatibilitaet)
-- [11. Start & Ausführungsmodi](#start--ausfuehrungsmodi)
-- [12. Allowlist-Konfiguration & Reaping-Regeln](#allowlist-konfiguration--reaping-regeln)
-- [13. Audit-Protokollierung & Forensisches Ereignis-Schema](#audit-protokollierung--forensisches-ereignis-schema)
-- [14. Tests & Qualitätssicherung](#tests--qualitaetssicherung)
-- [15. Sicherheitsrichtlinie & Datenschutz-Governance](#sicherheitsrichtlinie--datenschutz-governance)
-- [16. Drittanbieter-Transparenz & Level 1 SBOM](#drittanbieter-transparenz--level-1-sbom)
-- [17. Entwicklung, Build & Packaging](#entwicklung-build--packaging)
-- [18. Gesetzlicher Hinweis (§ 521 BGB) & Lizenz-Attribution](#gesetzlicher-hinweis--521-bgb--lizenz-attribution)
+- [1. Übersicht und Problemstellung](#overview--problem-statement)
+- [2. Systemarchitektur und Topologie](#system-architecture--topology)
+- [3. Vollständige Lebenszyklussequenz](#complete-lifecycle-sequence)
+- [4. Dokumentierte Laufzeitsicherungen](#governance--runtime-invariants)
+- [5. Zielbenutzer und Auffindbarkeit](#target-personas--discoverability)
+- [6. Umfang und Alternativen](#comparative-matrix--alternatives)
+- [7. Verwandte Projekte](#sibling-ecosystem--partner-tools)
+- [8. Merkmale und Fähigkeiten](#features--capabilities)
+- [9. Windows-Infobereich: Oberfläche und Bedienung](#windows-tray-interface--ux)
+- [10. Anforderungen und Plattformkompatibilität](#requirements--platform-compatibility)
+- [11. Start- und Ausführungsmodi](#start--execution-modes)
+- [12. Zulassungsliste und Regeln für Prozesskandidaten](#allowlist-configuration--reaping-rules)
+- [13. Audit-Protokollierung und Ereignisform](#audit-logging--forensic-event-schema)
+- [14. Prüfung und Qualitätssicherung](#testing--quality-assurance)
+- [15. Sicherheitsrichtlinie und Datenschutz](#security-policy--privacy-governance)
+- [16. Abhängigkeitslizenzen von Drittanbietern](#third-party-transparency--level-1-sbom)
+- [17. Entwicklung, Bau und Verpackung](#development-build--packaging)
+- [18. Lizenz und Namensnennung](#statutory-notice--521-bgb--license-attribution)
 
 ---
 
 <a id="sec-01"></a><a id="overview--problem-statement"></a><a id="ueberblick--problemstellung"></a><a id="überblick--problemstellung"></a>
-## 1. Überblick & Problemstellung
+## 1. Überblick und Problemstellung
 
-Wenn lokale KI-Agenten-Frameworks (Claude Code, Codex CLI, Gemini Antigravity, Kimi) oder Entwickler-IDEs unerwartet beendet werden, können Model Context Protocol (MCP) Server (`node.exe`, `python.exe`) und Language-Server (`rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `pylsp`) als verwaiste Prozesse („Zombies“) im System verbleiben. Über mehrere Arbeitszyklen hinweg sammeln sich diese Prozesse an, belegen wertvollen Arbeitsspeicher und blockieren Dateisperren auf Projektverzeichnissen.
+Wenn lokale KI-Agent-Frameworks (Claude Code, Codex CLI, Gemini Antigravity, Kimi) oder IDEs die Verbindung verlieren oder unerwartet beendet werden, können Backend-Server des Model Context Protocol (MCP) (`node.exe`, `python.exe`) und Sprachserver (`rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `pylsp`) im Hintergrund weiterlaufen. Mit der Zeit sammeln sich solche nicht mehr verwalteten Prozesse an, verbrauchen Arbeitsspeicher und können Dateien in aktiven Quellverzeichnissen sperren.
 
-Klassische Administrationsansätze unter Windows bergen erhebliche Risiken:
-- Pauschale Befehle wie `taskkill /F /IM node.exe` beenden aktive Entwicklungs-Server oder Weboberflächen ununterscheidbar und destruktiv.
-- Rekursive Prozessbaum-Kills (`taskkill /T`) reißen oft die übergeordnete IDE oder das Terminal-Fenster mit in den Abgrund.
-- Einfache PID-Prüfungen sind anfällig für Windows-PID-Reuse-Races: Wird ein Prozess beendet, kann Windows dieselbe PID sofort einem neuen, unbeteiligten Prozess zuweisen.
+Übliche administrative Bereinigungsmethoden unter Windows bergen Risiken:
+- Einfache PowerShell- oder cmd-Befehle wie `taskkill /F /IM node.exe` können aktive Entwicklungssitzungen, Vordergrundserver oder Webwerkzeuge wahllos beenden.
+- Rekursive Prozessbaum-Beendigungen (`taskkill /T`) können ganze Terminalsitzungen oder Entwickler-IDEs beenden.
+- Eine einfache PID-Prüfung ist anfällig für Wettlaufsituationen durch wiederverwendete Windows-PIDs: Eine PID kann nach dem Ende eines Prozesses einem anderen Prozess zugewiesen werden, bevor der Beendigungsbefehl ausgeführt wird.
 
-`zombie-killer-tray` löst diese Herausforderung durch eine konservative, Fail-Closed arbeitende Prüfpipeline. Es verifiziert die Prozessincarnation, den toten Elternprozess über getrennte Zeitpunkte, vollständigen CPU-Stillstand (Null-Delta), ein Mindestalter (Standard: 30 Minuten) und sperrt das Kernel-Objekt über ein explizites Win32-Prozess-Handle (`OpenProcess`), bevor ein Beendigungssignal gesendet wird.
+`zombie-killer-tray` verwendet mehrere aufeinanderfolgende Prüfungen. Verglichen werden Prozessidentität, Zustand des Elternprozesses in mehreren Beobachtungen, CPU-Zeit und ein Mindestalter ab Prozesserstellung (standardmäßig 30 Minuten). Das Windows-Modul zur Prozessprüfung hält während der Prüfungen und des Beendigungsversuchs einen Prozesshandle offen. Das hilft, nach einer PID-Wiederverwendung nicht versehentlich einen anderen Prozess anzusprechen.
 
 ---
 
 <a id="sec-02"></a><a id="system-architecture--topology"></a><a id="systemarchitektur--topologie"></a>
-## 2. Systemarchitektur & Topologie
+## 2. Systemarchitektur und Topologie
 
-#### Architektonische Topologie-Projektion (Vier-Sichten-Systemarchitektur)
-
-```text
-+-------------------------------------------------------------------------------+
-|  SICHT 1: STARTER, BENUTZEROBERFLÄCHEN & TRAY-LAUFZEITEN                      |
-|  - Windows-System-Tray-UI (zombie_tray.ps1, NotifyIcon, WinForms Balloon)     |
-|  - Admin-Starter mit UAC-Elevation (start-zombie-killer-admin.bat)            |
-|  - Unprivilegierter Vorab-Diagnosemodus (--check, RunAsInvoker)               |
-|  - Python-Paket-CLI & Eingebettete Laufzeit (zombie_killer_tray / killer)     |
-+---------------------------------------+---------------------------------------+
-                                        | startet / überwacht
-                                        v
-+-------------------------------------------------------------------------------+
-|  SICHT 2: ZOMBIE-REAPER KERN-ENGINE & PID-VERIFIKATION                        |
-|  - Win32-Prozess-Enumeration & Snapshots (psutil.process_iter / ctypes Enum)  |
-|  - Allowlist-Klassifikator (LSP, MCP-Pakete, Node-Einträge, Python-Module)    |
-|  - Elternprozess-Lebensprüfung (INV-PARENT-03: Zwei-Stichproben-Elterntod)    |
-|  - Zwei-Stichproben CPU-Stillstand & Identitäts-Stabilitäts-Gate (STABLE-04)  |
-|  - Mindestalter-Prüfung (INV-AGE-09: >= 30min Standard-Untergrenze)           |
-+---------------------------------------+---------------------------------------+
-                                        | koordiniert / sichert
-                                        v
-+-------------------------------------------------------------------------------+
-|  SICHT 3: LAUFZEIT-PERSISTENZ, FORENSISCHES JSONL-AUDIT & KERNEL-SPERREN      |
-|  - Win32 Kernel-Handle-Sperre (OpenProcess mit PROCESS_TERMINATE)             |
-|  - Schutz vor Windows-PID-Wiederverwendungs-Races (INV-HANDLE-05)             |
-|  - Vorab-Forensik-Auditprotokoll (INV-AUDIT-08: zombie_events.jsonl)          |
-|  - Einzelprozess-Beendigung ohne Baum-Kills (INV-NOTREE-07: TerminateProcess) |
-|  - Benutzereinstellungen & Intervall-Persistenz (zombie_state.json)           |
-+---------------------------------------+---------------------------------------+
-                                        | umfasst / erzwingt
-                                        v
-+-------------------------------------------------------------------------------+
-|  SICHT 4: AIR-GAP DEFENSE PERIMETER, RUNASINVOKER & ZERO-EGRESS GOVERNANCE    |
-|  - 100% Lokaler Offline-Betrieb & Null-Netzwerk-Egress (INV-LOCAL-01)         |
-|  - Unprivilegierte Non-Elevation-Sicherheitsrichtlinie (INV-SEC-02, Invoker)  |
-|  - Duales Sicherheits-Reaktions-SLA (INV-SLA-10: 48h Antwort, 5 Tage Triage)  |
-|  - Gesetzlicher Haftungsausschluss (§ 521 BGB Gefälligkeitsrecht)             |
-|  - Level 1 SBOM Drittanbieter-Transparenz (MIT, BSD-3-Clause, PSFL-2.0)       |
-+-------------------------------------------------------------------------------+
-```
+Das Tray-Programm und das Python-Modul zur Prozessprüfung untersuchen eine eng begrenzte Auswahl von Prozesskandidaten. Die Launcher-Option `--check` prüft nur, ob das Tray-Skript vorhanden ist und von PowerShell geparst werden kann. Sie startet das Prozessprüfungsmodul nicht und untersucht keine Prozesse.
 
 ```mermaid
 flowchart TD
-    subgraph UI["Benutzeroberflächen & Starter"]
-        TRAY["PowerShell WinForms Tray\n(zombie_tray.ps1)"]
-        BAT_ADMIN["Admin-Starter mit UAC\n(start-zombie-killer-admin.bat)"]
-        CHECK["Unprivilegierte Prüfung\n(start-zombie-killer-admin.bat --check)"]
-        CLI["Python Reaper Engine\n(zombie_killer.py)"]
-    end
-
-    subgraph OS_SNAPSHOT["Win32 Kernel & Prozesstabelle"]
-        SNAP["Win32 Prozess-Enumeration\n(psutil.process_iter / ctypes)"]
-        PID_TBL["Prozess-PID-Tabelle\n(Pfad & Befehlszeile)"]
-    end
-
-    subgraph FILTER["Allowlist-Filterungs-Engine"]
-        ALLOW["Strikte Positivliste\n(INV-ALLOW-06)"]
-        NODE["Node.js MCP-Pakete\n(@modelcontextprotocol/server-*)"]
-        PY_MCP["Python MCP-Server\n(-m mcp / fastmcp)"]
-        LSP["Language-Server Binaries\n(rust-analyzer / clangd / gopls)"]
-        EXCLUDE["Selbstausschluss & Schutz\n(Kritische Entwickler-Tools)"]
-    end
-
-    subgraph GUARDS["Sicherheits- & Aktivitäts-Wächter"]
-        SAMPLE1["Stichprobe 1: Basis-Messung\n(CPU-Zeit & Startstempel)"]
-        TIMER["Beobachtungsintervall\n(Standard: 1.0s Sleep)"]
-        SAMPLE2["Stichprobe 2: Stillstand-Probe\n(Null-CPU-Delta gefordert)"]
-        PARENT["Parent-PID Lebensprüfung\n(INV-PARENT-03: Parent tot)"]
-        AGE["Mindestalter-Verifikation\n(INV-AGE-09: >= 30min Standard)"]
-        HANDLE["Kernel-Handle-Sperre\n(INV-HANDLE-05: Pinned OpenProcess)"]
-    end
-
-    subgraph EXEC["Audit & Sichere Beendigung"]
-        AUDIT["Forensisches Audit-Protokoll\n(INV-AUDIT-08: zombie_events.jsonl)"]
-        TERM["Sichere Beendigung\n(INV-NOTREE-07: Win32 TerminateProcess)"]
-        TOAST["Windows Info-Benachrichtigung\n(Anzahl bereinigt & RAM frei)"]
-    end
-
-    BAT_ADMIN --> TRAY
-    TRAY --> CLI
-    CHECK --> CLI
-    CLI --> SNAP
-    SNAP --> PID_TBL
-    PID_TBL --> ALLOW
-    ALLOW --> NODE
-    ALLOW --> PY_MCP
-    ALLOW --> LSP
-    ALLOW --> EXCLUDE
-    ALLOW --> SAMPLE1
-    SAMPLE1 --> TIMER
-    TIMER --> SAMPLE2
-    SAMPLE2 --> PARENT
-    PARENT --> AGE
-    AGE --> HANDLE
-    HANDLE --> AUDIT
-    AUDIT -->|Audit-Eintrag bestätigt| TERM
-    TERM --> TOAST
+    User["Entwickler"]
+    Tray["Windows-Infobereich\n(zombie_tray.ps1)"]
+    Check["BAT --check\n(Datei vorhanden + PowerShell-Analyse)"]
+    Engine["Python-Modul zur Prozessprüfung"]
+    Snapshot["Prozessaufnahmen"]
+    Allow["Zulassungsliste der Einstiegspunkte"]
+    Parent["Prüfung des Elternprozessstatus"]
+    Age["Mindestalter des Prozesses prüfen"]
+    Handle["Beibehaltener Win32-Prozesshandle"]
+    Audit["Intent-Datensatz an JSONL anhängen"]
+    Terminate["Einzelnen Prozess beenden"]
+    Outcome["Zyklusergebnis an JSONL anhängen"]
+    User --> Tray
+    Check -->|Prozessprüfung nicht starten| User
+    Tray -->|Kontextmenübefehl oder Doppelklick auf das Symbol| Engine
+    Engine --> Snapshot --> Allow --> Parent --> Age --> Handle
+    Handle --> Audit --> Terminate --> Outcome
 ```
 
----
+Der gehaltene Prozesshandle hilft, Prüfung und Beendigungsversuch an dasselbe Prozessobjekt zu binden. Das Projekt behauptet nicht, dadurch sämtliche möglichen Wettlaufsituationen im Betriebssystem auszuschließen.
 
 <a id="sec-03"></a><a id="complete-lifecycle-sequence"></a><a id="vollstaendiger-ausfuehrungsablauf"></a><a id="vollständiger-ausführungsablauf"></a>
-## 3. Vollständiger Ausführungsablauf
+## 3. Vollständiger Ablauf eines Zyklus
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Dev as Entwickler / Tray-Aktion
-    participant Tray as Windows Tray (zombie_tray.ps1)
-    participant Engine as Killer-Engine (zombie_killer.py)
-    participant OS as Win32 Kernel & Prozess-API
-    participant Audit as Audit-Protokoll (zombie_events.jsonl)
-    participant Target as Zombie-Prozess (node/rust-analyzer)
+    actor Dev as Entwickler
+    participant Tray as Windows-Infobereich (zombie_tray.ps1)
+    participant Engine as Python-Modul zur Prozessprüfung
+    participant OS as Windows-Prozess-APIs
+    participant Audit as zombie_events.jsonl
 
-    Dev->>Tray: Klick auf "Jetzt prüfen und veraltete MCPs bereinigen"
-    Tray->>Engine: Startet Python-Bereinigungszyklus (--cycle)
-    Engine->>OS: Snapshot der Prozesstabelle (psutil.process_iter)
-    OS-->>Engine: Prozessliste mit PID, PPID, Pfad, Cmdline, Startzeit
-    Engine->>Engine: Gleicht Kandidat mit strikter Positivliste ab (INV-ALLOW-06)
-
-    opt Kandidat entspricht Positivliste
-        Engine->>OS: Öffnet Handle mit PROCESS_QUERY_LIMITED_INFORMATION
-        Engine->>OS: Prüft Lebensstatus der Parent-PID (INV-PARENT-03)
-        OS-->>Engine: Parent-PID existiert nicht mehr (Parent tot)
-
-        Engine->>Engine: Prüft Mindestalter >= min_age_s (INV-AGE-09)
-        Engine->>OS: Stichprobe 1 - CPU-Zeiten und Erstellungszeit erfassen
-        Engine->>Engine: Wartet Beobachtungsintervall ab (1.0s)
-        Engine->>OS: Stichprobe 2 - Zweite CPU-Zeiten erfassen
-
-        alt CPU-Delta == 0 und Zeitstempel identisch
-            Engine->>OS: Fordert Beendigungs-Handle an (INV-HANDLE-05)
-            OS-->>Engine: Prozess-Handle gepinnt (PID-Reuse ausgeschlossen)
-            Engine->>OS: Finale Parent-Prüfung unmittelbar vor Beendigung
-            OS-->>Engine: Parent weiterhin tot bestätigt
-
-            Engine->>Audit: Schreibt Audit-Datensatz vorab (INV-AUDIT-08)
-            Audit-->>Engine: Audit auf Datenträger bestätigt
-
-            Engine->>OS: TerminateProcess(handle, exit_code=1) (INV-NOTREE-07)
-            OS->>Target: Saubere Kernel-Terminierung
-            OS-->>Engine: Beendigung erfolgreich
-            Engine->>OS: CloseHandle(handle)
-        else Aktiver Prozess erkannt (CPU-Delta > 0)
-            Engine->>Engine: Kandidat überspringen (Fail-Closed Schutz)
-        end
+    Dev->>Tray: Manuellen Bereinigungsbefehl im Kontextmenü wählen oder auf das Symbol doppelklicken
+    Tray->>Engine: Einen Prüfzyklus starten
+    Engine->>OS: Zwei Prozessaufnahmen lesen
+    OS-->>Engine: Prozessidentität, Elternprozessstatus, CPU-Zeit und Erstellungszeit
+    Engine->>Engine: Zulassungsliste und Sicherheitsprüfungen abgleichen
+    Engine->>Engine: Mindestalter ab Prozesserstellung prüfen
+    opt Ausführungsmodus mit --yes und Kandidat besteht die Prüfungen
+        Engine->>Audit: Intent-Datensatz zur Beendigung anhängen
+        Audit-->>Engine: Schreibvorgang abgeschlossen
+        Engine->>OS: Erneut prüfen und einzelne Prozessbeendigung versuchen
+        OS-->>Engine: Ergebnis
+        Engine->>Audit: Ergebnisdatensatz anhängen
     end
-
-    Engine-->>Tray: Übergibt JSON-Statistik (geprüft, verifiziert, bereinigt)
-    Tray-->>Dev: Info-Benachrichtigung ("X verwaiste Prozesse bereinigt")
+    Engine-->>Tray: Zusammenfassung des Zyklus zurückgeben
+    Note over Tray,Dev: Keine Toast- oder Sprechblasenbenachrichtigung implementiert
 ```
 
----
+Die Engine überspringt einen Kandidaten, wenn eine erforderliche Prüfung fehlschlägt. Das Mindestalter wird ab der Prozesserstellung gemessen, nicht ab dem Ende des Elternprozesses. Im Ausführungsmodus mit `--yes` wird ein Prozess nicht beendet, wenn der vorherige Intent-Datensatz nicht geschrieben werden kann. JSONL-Einträge werden gewöhnlich angehängt und können bearbeitet werden.
 
 <a id="sec-04"></a><a id="governance--runtime-invariants"></a><a id="sicherheitsmodell--governance-invarianten"></a>
-## 4. Sicherheitsmodell & Governance-Invarianten
+## 4. Dokumentierte Laufzeitschutzmaßnahmen
 
-Die Anwendung setzt 10 unveränderliche Architektur- und Governance-Invarianten durch:
+Die Tabelle beschreibt Verhalten, das in der aktuellen Quelle sichtbar ist. Diese Hinweise sind weder eine Zertifizierung noch eine Betriebssystem-Sandbox oder eine Garantie gegen jeden möglichen Fehler.
 
-| Invarianten-Code | Garantie | Kategorie | Durchsetzungs-Mechanismus |
-|:---|:---|:---|:---|
-| **INV-LOCAL-01** | Lokal-Erstmals & Zero Egress | Netzwerkschutz | Reines Python/psutil; null Netzwerk-Sockets; null Telemetrie |
-| **INV-SEC-02** | Unprivilegierte Inspektion | Rechte-Hygiene | `start-zombie-killer-admin.bat --check` und Python-CLI laufen ohne UAC (`RunAsInvoker`) |
-| **INV-PARENT-03** | Dead-Parent-Verifikation | Prozesssicherheit | Parent-PID muss in allen Stichproben und vor dem Kill tot sein |
-| **INV-STABLE-04** | Zwei-Stichproben CPU-Stabilität | Mutationsschutz | 2 Snapshots fordern 0 CPU-Delta und identischen Erstellungszeitpunkt |
-| **INV-HANDLE-05** | PID-Reuse Schutz durch Pinned Handle | Kernel-Sicherheit | Hält Win32 `OpenProcess`-Handle, um Kernel-Objekt zu sperren |
-| **INV-ALLOW-06** | Strikte Positivliste (Allowlist) | Scope-Grenze | Nur explizit gelistete MCP- und Language-Server-Prozesse werden erfasst |
-| **INV-NOTREE-07** | Keine pauschalen Baum-Kills | Sicherheits-Isolation | Einzelne Prozessbeendigung; niemals rekursives Töten von Prozessbäumen |
-| **INV-AUDIT-08** | Pre-Termination Audit-Logging | Nachvollziehbarkeit | Audit-Eintrag in `zombie_events.jsonl` vor dem Kill; Abbruch bei Schreibfehler |
-| **INV-AGE-09** | Mindestalter-Schutz | Zeitliche Sicherheit | Konservatives Mindestalter von 30 Minuten (Standard) schützt frische Prozesse |
-| **INV-SLA-10** | Duales Sicherheits-Response-SLA | Governance & Triage | 48h Erstantwort, 5 Werktage Triage gemäß `SECURITY.md` |
-
----
+| Kennung | Aktuelles Verhalten | Grenze |
+|:---|:---|:---|
+| **INV-LOCAL-01** | Der geprüfte Quellcode des Projekts für Prozessprüfung und Infobereich enthält keine ausgehenden Netzwerkanfragen. | Das ist weder eine Netzwerksperre des Betriebssystems noch eine unabhängige Garantie für jede Abhängigkeit oder jeden Host. |
+| **INV-SEC-02** | `start-zombie-killer-admin.bat --check` prüft die Tray-Datei und lässt sie von PowerShell parsen. | Der Befehl untersucht keine Prozesse, prüft Python nicht und senkt das Sicherheitstoken des aufrufenden Prozesses nicht ab. |
+| **INV-PARENT-03** | Der Zustand des Elternprozesses wird erfasst und vor einem Beendigungsversuch erneut geprüft. | Bei einer fehlgeschlagenen oder unvollständigen Prüfung wird der Kandidat übersprungen. |
+| **INV-STABLE-04** | Das Prozessprüfungsmodul vergleicht zwei Prozessbeobachtungen, einschließlich Prozessidentität und CPU-Zeit. | Das schränkt die Auswahl ein, garantiert aber kein risikofreies Verhalten. |
+| **INV-HANDLE-05** | Die Windows-Engine hält während der Prüfungen und des Beendigungsversuchs einen Prozesshandle offen. | Das hilft, eine wiederverwendete PID nicht mit dem ursprünglichen Prozess zu verwechseln; Wettlaufsituationen werden dadurch nicht ausgeschlossen. |
+| **INV-ALLOW-06** | Für den Abgleich wird eine begrenzte Liste konfigurierter MCP- und Sprachserver-Einstiegspunkte verwendet. | Die Zulassungsliste ist kein allgemeiner Prozessmanager. |
+| **INV-NOTREE-07** | Die Engine versucht, einen ausgewählten Prozess einzeln zu beenden, nicht rekursiv einen Prozessbaum. | Dadurch ist nicht jeder Prozess ein Kandidat und ein erfolgreicher Abschluss nicht garantiert. |
+| **INV-AUDIT-08** | Im Ausführungsmodus mit `--yes` wird vor dem Beendigungsversuch ein Intent-Datensatz angehängt. Kann dieser nicht geschrieben werden, wird der Versuch abgebrochen. | Die JSONL-Datei ist ein gewöhnliches lokales Anhangprotokoll und nicht manipulationssicher. |
+| **INV-AGE-09** | Ein Mindestalter ab Prozesserstellung ist erforderlich. Standardmäßig sind es 1.800 Sekunden (30 Minuten); unterstützte Einstellungen können den Wert ändern. | Gemessen wird nicht die Zeit seit dem Verwaisen des Prozesses. |
+| **Antwortzeiten** | Hinweise zur Meldung von Sicherheitsproblemen stehen in `SECURITY.md`. | Es wird keine Reaktions- oder Triagezeit zugesagt. |
 
 <a id="sec-05"></a><a id="target-personas--discoverability"></a><a id="zielgruppen--auffindbarkeit"></a>
-## 5. Zielgruppen & Auffindbarkeit
+## 5. Zielbenutzer und Auffindbarkeit
 
-`zombie-killer-tray` richtet sich an vier zentrale Entwicklergruppen im Windows-Umfeld:
+`zombie-killer-tray` ist ein Windows-Werkzeug für Entwickler, die ausgewählte MCP- und Sprachserverprozesse regelmäßig prüfen möchten.
 
-| Zielgruppe | Profil & Anwendungsfall | Herausforderung | Lösung & Workflow |
-|:---|:---|:---|:---|
-| **[PERSONA-01] KI-Entwickler & Multi-Agenten-Architekten** | Entwickler autonomer Agenten (Claude Code, Codex CLI, Antigravity, Kimi). | Plötzliche Agenten-Abbrüche hinterlassen dutzende MCP-Server (`node.exe`, `python.exe`), die RAM und Sockets blockieren. | Konservative Erkennung und Bereinigung verwaister MCP-Server im Hintergrund ohne Einfluss auf aktive Sitzungen. |
-| **[PERSONA-02] Windows DevOps & Zuverlässigkeits-Ingenieure (SREs)** | Betreuer von Entwicklungs-Workstations und CI/CD-Runner-Instanzen. | Unspezifische `taskkill /F`-Skripte beenden versehentlich aktive Terminal-Sitzungen oder IDE-Prozesse. | Zwei-Stichproben-Verifikation, gepinnte Kernel-Handles und deterministische Allowlisten garantieren null Fehlalarme. |
-| **[PERSONA-03] Full-Stack Entwickler & Language-Server Nutzer** | Programmierer in Rust, C++, Go oder Python (VS Code, Neovim, JetBrains). | Zurückgebliebene `rust-analyzer`- oder `clangd`-Prozesse blockieren Schreibzugriffe auf Quellverzeichnisse. | Beendigung erfolgt nur, wenn der Editor-Parent nachweislich tot ist und die CPU-Aktivität flach auf null liegt. |
-| **[PERSONA-04] Sicherheits- & Compliance-Beauftragte** | Verantwortliche für lokale Ausführungsgrenzen und transparente Software. | Intransparente Systemreiniger mit unklarer Cloud-Telemetrie oder dauerhaft erzwungenen Administratorrechten. | 100% Zero-Egress (`INV-LOCAL-01`), unprivilegierter Prüfmodus (`INV-SEC-02`), lokales JSONL-Audit und Level 1 SBOM. |
+| Benutzerkontext | Typisches Problem | Was dieses Projekt bewirkt |
+|:---|:---|:---|
+| **KI- und Multi-Agent-Entwicklung** | Nach einem unerwarteten Ende eines Clients kann ein passender Backend-Prozess weiterlaufen. | Das Programm prüft ausgewählte Einstiegspunkte und verlangt vor einem Beendigungsversuch passende Prozess- und Elternprozessbedingungen. |
+| **Betreuung von Windows-Arbeitsplätzen** | Eine Bereinigung allein nach Prozessnamen kann unbeteiligte Prozesse treffen. | Eine Zulassungsliste begrenzt die Kandidaten; mehrere Beobachtungen werden geprüft. |
+| **Nutzung von Sprachservern** | Ein Sprachserver kann nach dem Schließen des Editors weiterlaufen. | Geprüft werden der Zustand des Elternprozesses und das Mindestalter; der Zeitpunkt, zu dem der Prozess verwaiste, wird nicht ermittelt. |
+| **Prüfung lokaler Prozessdaten** | Protokolle können Befehlszeilenargumente und lokale Pfade offenlegen. | Das Programm schreibt lokale JSONL-Datensätze. Diese Dateien sollten geschützt und bei Bedarf geprüft werden. |
 
-#### Suchbegriffe mit hoher Absicht (High-Intent SEO)
-- **Deutsch (DE):** `verwaiste mcp server prozesse beenden windows`, `language server prozesse bereinigen python tray`, `sichere prozesshygiene windows entwickler tools`, `mcp zombie prozesse loeschen windows`, `zombie-killer-tray`
-- **English (EN):** `windows mcp zombie process killer`, `safe orphaned language server cleanup windows`, `clean orphaned node mcp servers python`, `conservative windows process reaper`, `mcp process hygiene developer tools`, `zombie-killer-tray`
-
----
+#### Suchbegriffe
+- **Englisch (EN):** `windows mcp process cleanup`, `orphaned language server windows`, `node mcp server cleanup`, `zombie-killer-tray`
+- **Deutsch (DE):** `Windows-MCP-Prozesse prüfen`, `verwaiste Sprachserver unter Windows`, `MCP- und Sprachserverprozesse bereinigen`
 
 <a id="sec-06"></a><a id="comparative-matrix--alternatives"></a><a id="vergleichsmatrix--alternativen"></a>
-## 6. Vergleichsmatrix & Alternativen
+## 6. Umfang und Alternativen
 
-| Fähigkeit & Dimension | zombie-killer-tray | Windows Task-Manager | Ad-Hoc Skripte / taskkill | Generische Cleaner (CCleaner) | Cloud APM / Schwere Telemetrie |
-|:---|:---|:---|:---|:---|:---|
-| **1. Lokal & Zero-Egress (INV-LOCAL-01)** | **Volle Garantie (0 Telemetrie)** | Offline-Systemprogramm | Abhängig vom Skript | ❌ Eingebaute Cloud-Telemetrie | ❌ Ständige Datenübertragung |
-| **2. Unprivilegierte Prüfung (INV-SEC-02)** | **Volle Unterstützung (RunAsInvoker)** | ⚠️ Fordert oft UAC an | ⚠️ Benötigt UAC für Kills | ❌ Vollständige Adminrechte nötig | ❌ Systemdienst-Daemon |
-| **3. Dead-Parent-Verifikation (INV-PARENT-03)** | **Strikte Zwei-Stichproben-Prüfung** | ❌ Reine Sichtprüfung | ❌ Blinder Namensabgleich | ❌ Keine Parent-PID-Prüfung | ⚠️ Metrik vorhanden, kein Gate |
-| **4. CPU- & Identitätsstabilität (INV-STABLE-04)** | **Null-Delta CPU-Schutz** | ❌ Keine | ❌ Keine | ❌ Keine | ⚠️ Nur gleitender Durchschnitt |
-| **5. Gepinnter Kernel-Handle-Lock (INV-HANDLE-05)** | **Win32 OpenProcess Pin** | ❌ Rennanfällige PID | ❌ Extrem rennanfällig | ❌ Keine | ❌ Keine |
-| **6. Strikte Positivliste (INV-ALLOW-06)** | **Exakter Abgleich & Selbstausschluss**| ❌ Manuelles Auswählen | ❌ Regex / Namensfilter | ❌ Grobe Dateikategorien | ❌ Keine |
-| **7. Keine pauschalen Baum-Kills (INV-NOTREE-07)** | **Nur isolierter Zielprozess** | ⚠️ Bietet „Prozessstruktur beenden“| ❌ Blindes /T Töten | ❌ Willkürliche Kills | ❌ Nicht anwendbar |
-| **8. Forensisches Vorab-Audit (INV-AUDIT-08)** | **Unveränderliches JSONL-Log** | ❌ Keine | ❌ Selten / unvollständig | ❌ Intransparente Logdateien | ⚠️ Cloud-übertragene Logs |
-| **9. Mindestalter-Schonfrist (INV-AGE-09)** | **Konfigurierbare 30 Min. Basis** | ❌ Keine | ❌ Keine | ❌ Keine | ❌ Keine |
-| **10. Sicherheits-SLA & Vertragstests (INV-SLA-10)** | **48h SLA & 100% Grüne Tests** | Nicht anwendbar | ❌ Keine Testsuite | ❌ Closed-Source Software | ⚠️ Kommerzielles Vendor-SLA |
-
----
+Das Projekt deckt einen eng umrissenen Ablauf ab: Es prüft eine konfigurierte Auswahl von MCP- und Sprachserverprozessen unter Windows und kann nach den Prüfungen versuchen, einzelne Prozesse zu beenden. Integrierte Prozesstools eignen sich zur manuellen Prüfung und für direkt ausgelöste Aktionen. Eigene Skripte unterscheiden sich in ihrer Auswahl- und Sicherheitslogik. Diese README macht keine Leistungs-, Datenschutz-, Sicherheits- oder Funktionsaussagen über Produkte Dritter.
 
 <a id="sec-07"></a><a id="sibling-ecosystem--partner-tools"></a><a id="geschwister-oekosystem--partner-tools"></a><a id="geschwister-ökosystem--partner-tools"></a>
-## 7. Geschwister-Ökosystem & Partner-Tools
+## 7. Verwandte Projekte
 
-`zombie-killer-tray` fügt sich nahtlos in das Entwickler-Ökosystem von `dev-bricks`, `ellmos-ai` und `open-bricks` ein:
+Die folgenden Links führen zu Projekten verwandter Entwicklerorganisationen. Daraus folgt weder eine technische Integration noch eine gemeinsame Laufzeit.
 
-| Partner-Tool | Organisation | Rolle & Fähigkeiten | Zusammenspiel mit Zombie Killer Tray |
-|:---|:---:|:---|:---|
-| **[CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex)** | `dev-bricks` | Windows Desktop-App Wartung & SQLite-Optimierer für Codex | Arbeitet Hand in Hand beim Bereinigen hängender Desktop- und MCP-Reste |
-| **[safe-start-for-codex](https://github.com/dev-bricks/safe-start-for-codex)** | `dev-bricks` | Startverzögerung, Burst-Schutz und Automationspausen | Sorgt für eine saubere Startumgebung ohne blockierende Zombie-Locks |
-| **[MethodenAnalyser](https://github.com/dev-bricks/MethodenAnalyser)** | `dev-bricks` | Statische AST-Analyse und Methoden-Komplexitätsprüfer | Liefert Architekturprüfungen und Vertragstests für Python-Codebasen |
-| **[ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp)** | `ellmos-ai` | Robuster, lokaler Dateisystem-MCP-Server | Überwachter MCP-Server; wird vor unbemerktem Zombie-Dasein bewahrt |
-| **[ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp)** | `ellmos-ai` | Code-Refactoring und strukturelle Datei-Editierung | Ziel-Server; wird bei verwaistem Elternprozess zuverlässig abgeräumt |
-| **[ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp)** | `ellmos-ai` | Multi-Agenten Steuerzentrale & Governance-Hub | Koordiniert Agentensitzungen und überwacht Prozessgrenzen |
-| **[n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp)** | `ellmos-ai` | Lokaler Workflow-Automations-Manager & Runner | Überwacht Hintergrund-Automationsprozesse auf der Entwickler-Maschine |
-| **[CloudLockFixer](https://github.com/file-bricks/CloudLockFixer)** | `file-bricks` | Cloud-Synchronisations-Entsperrer & Konfliktkopien-Manager | Teilt die Disziplin des Schutzes lokaler Dateisperren |
-| **[DokuZen](https://github.com/doc-bricks/DokuZen)** | `doc-bricks` | Lokale Dokument-OCR, PDF-Redaktion und Bereinigung | Desktop-Partnerwerkzeug mit strenger Zero-Egress-Prozessisolation |
-
----
+- [CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) - `dev-bricks`
+- [safe-start-for-codex](https://github.com/dev-bricks/safe-start-for-codex) - `dev-bricks`
+- [MethodenAnalyser](https://github.com/dev-bricks/MethodenAnalyser) - `dev-bricks`
+- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) - `ellmos-ai`
+- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) - `ellmos-ai`
+- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) - `ellmos-ai`
+- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) - `ellmos-ai`
+- [CloudLockFixer](https://github.com/file-bricks/CloudLockFixer) - `file-bricks`
+- [DokuZen](https://github.com/doc-bricks/DokuZen) - `doc-bricks`
 
 <a id="sec-08"></a><a id="features--capabilities"></a><a id="kernfunktionen--faehigkeiten"></a><a id="kernfunktionen--fähigkeiten"></a>
-## 8. Kernfunktionen & Fähigkeiten
+## 8. Funktionen und Fähigkeiten
 
-- **Win32 Pinned Process Handle (`INV-HANDLE-05`):** Öffnet ein explizites `OpenProcess`-Handle vor der Prüfung. Das Handle sperrt das Kernel-Objekt und verhindert PID-Reuse-Races wirksam.
-- **Zwei-Stichproben CPU- und Identitätsstabilität (`INV-STABLE-04`):** Führt zwei getrennte Messungen im Zeitabstand durch (Standard: 1,0 Sekunde). Bei CPU-Anstieg oder veränderter Erstellungszeit wird der Prozess sofort verworfen.
-- **Dead-Parent-Verifikation (`INV-PARENT-03`):** Prüft, ob die gemeldete Parent-PID in der Prozesstabelle nicht mehr existiert – in beiden Stichproben und direkt vor dem Aufruf von `TerminateProcess`.
-- **Forensisches Vorab-Audit (`INV-AUDIT-08`):** Schreibt vor der Beendigung einen JSON-Datensatz in `zombie_events.jsonl`. Schlägt das Schreiben fehl (Festplatte voll, Dateisperre), bricht die Terminierung sicher ab.
-- **Mindestalter-Schonfrist (`INV-AGE-09`):** Prozesse müssen mindestens 30 Minuten alt sein (`min_age_s = 1800`), um geschützt gegen kurzzeitige Spitzen im Build- oder Indexierungsbetrieb zu sein.
-- **Unprivilegierter Prüfmodus (`INV-SEC-02`):** Erlaubt Vorabprüfungen über `start-zombie-killer-admin.bat --check` ohne Administratorrechte (`RunAsInvoker`).
-- **Zero-Egress-Garantie (`INV-LOCAL-01`):** Vollständige Beschränkung auf die lokale Workstation. Null externe Netzwerkaufrufe, null Analytik, null Telemetrie.
-
----
+- **Prozesshandle-Prüfung (INV-HANDLE-05):** Das Windows-Modul zur Prozessprüfung hält während der Prüfungen und des Beendigungsversuchs einen Prozesshandle offen. Dadurch bleibt der Versuch an das beobachtete Prozessobjekt gebunden; Wettlaufsituationen im Betriebssystem werden dadurch nicht ausgeschlossen.
+- **Zwei Beobachtungen (INV-STABLE-04):** Die Engine vergleicht Prozessidentität und CPU-Zeit in zwei zeitlich getrennten Beobachtungen. Ein veränderter Kandidat oder ein Kandidat, der die Prüfungen nicht besteht, wird übersprungen.
+- **Elternprozess-Prüfung (INV-PARENT-03):** Der Zustand des Elternprozesses wird während des Zyklus und vor einem Beendigungsversuch geprüft.
+- **Lokale JSONL-Datensätze (INV-AUDIT-08):** Im Ausführungsmodus mit `--yes` wird vor dem Versuch ein Intent-Datensatz angehängt und danach das Ergebnis aufgezeichnet. Schlägt das Schreiben des Intent-Datensatzes fehl, wird der Versuch abgebrochen. Das Protokoll kann bearbeitet werden.
+- **Mindestalter (INV-AGE-09):** Ein Kandidat muss das eingestellte Mindestalter seit seiner Prozesserstellung erreicht haben. Standardmäßig sind es 1.800 Sekunden (30 Minuten); die Oberfläche bietet eine begrenzte Auswahl an Werten.
+- **Syntaxprüfung des Launchers:** `start-zombie-killer-admin.bat --check` prüft, ob das Tray-Skript vorhanden ist und von PowerShell geparst werden kann. Die Python-Engine wird nicht gestartet und die Prozesstabelle nicht untersucht.
+- **Netzwerkverhalten:** Im geprüften Erstparteicode für Prozessprüfung und Infobereich gibt es keinen ausgehenden Anfragepfad. Das Programm richtet keine Netzwerksperre des Betriebssystems ein; diese README behauptet keine vom Betriebssystem erzwungene Netzwerkgrenze.
 
 <a id="sec-09"></a><a id="windows-tray-interface--ux"></a><a id="windows-tray-bedienoberflaeche--benutzererlebnis"></a><a id="windows-tray-bedienoberfläche--benutzererlebnis"></a>
-## 9. Windows-Tray-Bedienoberfläche & Benutzererlebnis
+## 9. Windows-Infobereich: Oberfläche und Bedienung
 
-Die Tray-Bedienoberfläche basiert auf Windows PowerShell und WinForms (`System.Windows.Forms.NotifyIcon`). Sie ist ressourcenschonend und kommt ohne Browser-Engines oder WebViews aus:
+Die Oberfläche verwendet PowerShell WinForms und ein Symbol im Windows-Infobereich.
 
-- **Infobereich-Symbol:** Sitzt unaufdringlich im Infobereich der Windows-Taskleiste.
-- **Klick-/Doppelklick-Aktion:** Löst sofort einen manuellen Bereinigungszyklus aus.
-- **Zweisprachige Oberfläche (Deutsch / Englisch):** Tray-Menü, Tooltip und Beschriftungen richten sich beim ersten Start nach der Windows-UI-Sprache (Deutsch bei deutscher Systemsprache, sonst Englisch) und lassen sich jederzeit über das Untermenü **Sprache / Language** umschalten; die Wahl wird in `zombie_state.json` gespeichert und übersteht einen Tray-Neustart. Das Audit-Protokoll (`zombie_events.jsonl`) und das Diagnose-Log (`zombie_tray.log`) bleiben unabhängig davon Englisch — sie sind ein technisches Ereignis-Schema, kein Fließtext für Nutzer.
-- **Kontextmenü:**
-  - **Jetzt prüfen und veraltete MCPs bereinigen:** Startet umgehend die Erkennung und Bereinigung verwaister Server. Unabhängig vom Automatik-Zustand unten immer verfügbar.
-  - **Automatik (Häkchen) + Intervall-Untermenü:** Schaltet einen fortlaufenden Hintergrund-Bereinigungsworker an/aus und wählt dessen Prüfintervall — 5/10/20/30/60 min, 3/5/10/15/20 h oder 24 h (täglich); Standard 30 min. Automatik aus bedeutet: kein Hintergrundworker läuft — nur der manuelle Menüpunkt oben bereinigt dann noch.
-  - **Untermenü Mindestwartezeit:** Wie lange ein Kandidat-Prozess bereits verwaist sein muss (`--min-age` von `zombie_killer.py`), bevor er beendet werden darf — 5/10/15/30/60 min oder 2/6/12/24 h; Standard 30 min (unverändert zum bisherigen fest codierten Wert). Beide Auswahlen werden lokal gespeichert (`zombie_state.json`, gitignored, neben den Skripten) und überleben einen Tray-Neustart; die harte Untergrenze in `zombie_killer.py` selbst (`min_age >= 30 s`, `interval >= 3 s`) bleibt unverändert — dieses Menü schränkt nur den angebotenen Bereich ein.
-  - **Untermenü Sprache (Deutsch / Englisch):** Schaltet die Menüsprache des Trays sofort um, ohne Neustart.
-  - **Log öffnen:** Öffnet die Datei `zombie_tray.log` (Diagnose-Log) im Standard-Editor.
-  - **Tray beenden:** Beendet die Tray-Anwendung geordnet, ohne laufende Hintergrundprozesse anzutasten.
-- **Windows-Info-Benachrichtigungen:** Informiert dezent über die Anzahl bereinigter Prozesse und freigegebenen Speicher.
-
----
+- **Manuelle Bereinigung:** Das Kontextmenü enthält einen Befehl für einen manuellen Zyklus. Ein Doppelklick auf das Infobereichssymbol startet ebenfalls einen Zyklus; ein einfacher Klick tut das nicht.
+- **Kontextmenü:** Es bietet automatische Prüfungen, Intervall- und Mindestalterauswahl, Sprachauswahl, das Öffnen des lokalen Protokolls und das Beenden des Tray-Programms.
+- **Sechs Oberflächensprachen:** Menü, QuickInfo und Sprachauswahl unterstützen Englisch, Deutsch, Spanisch, vereinfachtes Chinesisch, Japanisch und Russisch. Die erste Auswahl richtet sich nach der Windows-Anzeigesprache; Englisch ist die Rückfalleinstellung. Die gewählte Sprache wird in `zombie_state.json` gespeichert. Technische Protokolle bleiben auf Englisch.
+- **Intervalle:** Zur Auswahl stehen 5/10/20/30/60 Minuten, 3/5/10/15/20 Stunden oder 24 Stunden. Das Standardintervall beträgt 30 Minuten.
+- **Mindestalter:** Zur Auswahl stehen 5/10/15/30/60 Minuten oder 2/6/12/24 Stunden. Standard sind 30 Minuten. Die Untergrenzen des Prozessprüfungsmoduls liegen weiterhin bei 30 Sekunden für das Mindestalter und 3 Sekunden für das Intervall; im Menü werden die unterstützten Werte angeboten.
+- **Benachrichtigungen:** Das Tray verwendet sein Symbol, die QuickInfo und das Kontextmenü. Sprechblasen- oder Toast-Benachrichtigungen sind nicht implementiert.
+- **Beenden:** Beim Beenden schließt sich das Tray-Programm und sein eigener Hintergrund-Worker wird gestoppt. An Prozesskandidaten wird kein Beendigungsbefehl gesendet.
 
 <a id="sec-10"></a><a id="requirements--platform-compatibility"></a><a id="voraussetzungen--plattform-kompatibilitaet"></a><a id="voraussetzungen--plattform-kompatibilität"></a>
-## 10. Voraussetzungen & Plattform-Kompatibilität
+## 10. Anforderungen und Plattformkompatibilität
 
-- **Betriebssystem:** Microsoft Windows 10 (64-Bit) oder Windows 11 (64-Bit).
-- **Python-Laufzeitumgebung:** Python 3.12 oder 3.13 (Standardbibliothek + `psutil`).
-- **PowerShell:** Windows PowerShell 5.1 (in Windows integriert) oder PowerShell 7+ (`pwsh`).
-- **Berechtigungen:**
-  - Administratorrechte für sitzungsübergreifende Hintergrundterminierung (`start-zombie-killer-admin.bat`).
-  - Standard-Benutzerrechte (`RunAsInvoker`) für syntaktische Prüfungen (`start-zombie-killer-admin.bat --check`).
-
----
+- **Betriebssystem:** Windows 10 oder Windows 11 (64-Bit).
+- **Python:** Python 3.12 oder neuer, wie in `pyproject.toml` deklariert; der aktuelle Workflow testet Python 3.12 unter Windows.
+- **PowerShell:** Windows PowerShell 5.1 oder PowerShell 7 unter Windows.
+- **Laufzeitabhängigkeit:** Installieren Sie im Stammverzeichnis des Repositorys vor dem Start der Python-Engine die deklarierte Abhängigkeit mit `python -m pip install -r requirements.txt`.
+- **Berechtigungen:** Der Batch-Launcher fordert für den normalen Tray-Betrieb Administratorrechte an. `--check` führt nur die oben beschriebenen Datei- und PowerShell-Prüfungen aus; es ändert das Sicherheitstoken des aufrufenden Prozesses nicht und untersucht keine Prozesse.
 
 <a id="sec-11"></a><a id="start--execution-modes"></a><a id="start--ausfuehrungsmodi"></a><a id="start--ausführungsmodi"></a>
-## 11. Start & Ausführungsmodi
+## 11. Start und Ausführungsmodi
 
-### 1. Start des System-Trays mit Administratorrechten (Empfohlen)
+### 1. Tray starten
 
-Doppelklick auf `start-zombie-killer-admin.bat`. Windows blendet den UAC-Dialog ein, und der Tray startet minimiert im Infobereich:
+Doppelklicken Sie auf `start-zombie-killer-admin.bat`. Der Launcher fordert über die Windows-Benutzerkontensteuerung (UAC) Administratorrechte an und startet das Tray-Programm:
 
 ```bat
 start-zombie-killer-admin.bat
 ```
 
-### 2. Unprivilegierte Vorabprüfung (`RunAsInvoker`)
-
-Prüft die Umgebung, die Positivlisten und die Prozesstabelle ohne UAC-Dialog:
+### 2. Das Launcher-Skript prüfen
 
 ```bat
 start-zombie-killer-admin.bat --check
 ```
 
-### 3. Direkter Aufruf über die Python-Kommandozeile
+Damit wird geprüft, ob das Tray-Skript vorhanden ist und von PowerShell geparst werden kann. Das Tray-Programm wird nicht gestartet, Python nicht geprüft, die Prozesstabelle nicht untersucht und das Sicherheitstoken des aufrufenden Prozesses nicht abgesenkt.
 
-Ausführung direkt über PowerShell:
+### 3. Prozesskandidaten über die Python-CLI anzeigen
 
 ```powershell
-# Kandidaten auflisten ohne Terminierung (reine Leseprüfung)
-python zombie_killer.py --list
+# Nur lesende Kandidatensuche
+python zombie_killer.py scan
 
-# Einen konservativen Bereinigungszyklus ausführen
-python zombie_killer.py --cycle
-
-# Mit individuellem Mindestalter ausführen (z. B. 15 Minuten)
-python zombie_killer.py --cycle --min-age 900
+# Einen Bereinigungszyklus anzeigen, ohne Prozesse zu beenden
+python zombie_killer.py reap --min-age 900
 ```
 
-### 4. Als installiertes Paket (für einbettende Konsumenten)
+Die CLI unterstützt die Aktionen `scan`, `reap`, `watch` und `broker-report`. `reap` und `watch` versuchen nur dann, Prozesse zu beenden, wenn `--yes` angegeben ist. Prüfen Sie Code und Kandidaten, bevor Sie den Ausführungsmodus mit `--yes` verwenden.
 
-Seit T-20260926-212716751 ist die Implementierung zusätzlich ein installierbares Paket (`src/zombie_killer_tray/`, Distributionsname `zombie-killer-tray`, dieselben CLI-Aktionen und -Flags):
+### 4. Das installierte Python-Paket verwenden
+
+Der Distributionsname des Pakets lautet `zombie-killer-tray`. Das Repository stellt es unter `src/zombie_killer_tray/` bereit:
 
 ```bash
-python -m zombie_killer_tray watch --parent-pid <pid> --interval 600
+python -m zombie_killer_tray scan
 ```
 
-`zombie_killer.py`/`zombie_settings.py` im Repo-Root bleiben unverändert bestehen -- duenne Wrapper-Skripte fuer `zombie_tray.ps1`/`start-zombie-killer-admin.bat` und jeden bestehenden Scheduled Task, der sie direkt aufruft; keine Migration noetig fuer den Tray. In beiden Faellen landet der lokale Laufzeitzustand (`zombie_events.jsonl`, `zombie_worker_errors.log`) im **aktuellen Arbeitsverzeichnis des Prozesses**, nicht dort, wo das Skript/Paket physisch liegt -- der Tray setzt das bereits explizit (`WorkingDirectory` = Repo-Root); ein einbettender Konsument waehlt seinen eigenen Zustandsort auf demselben Weg, ueber sein eigenes Subprozess-`cwd`.
-
----
+Die Engine schreibt ihr JSONL-Protokoll und Fehlerdateien des Workers in das aktuelle Arbeitsverzeichnis des Prozesses (`Path.cwd()`). Das Tray-Programm setzt das Arbeitsverzeichnis des Workers auf das Repository-Stammverzeichnis. Andere Aufrufer oder Paketnutzer verwenden jeweils ihr eigenes Arbeitsverzeichnis.
 
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
-## 12. Allowlist-Konfiguration & Reaping-Regeln
+## 12. Zulassungsliste und Regeln für Prozesskandidaten
 
-Zu bereinigende Prozesse müssen strengen Kriterien in `zombie_killer.py` entsprechen:
+Ein Kandidat muss zu einem der in der Quelle definierten Einstiegspunktsätze in [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26) passen:
 
-```python
-# Language-Server Binaries
-LSP_BINARIES = {
-    "rust-analyzer.exe",
-    "clangd.exe",
-    "gopls.exe",
-    "pylsp.exe",
-    "pyright-langserver.exe",
-}
+- **LSP-Programme:** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
+- **Node-Einstiegspunkte:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
+- **MCP-Pakete:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
+- **Python-Module:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
 
-# Node.js MCP-Server Indikatoren
-NODE_MCP_INDICATORS = {
-    "@modelcontextprotocol/server-",
-    "mcp-server-",
-    "server-filesystem",
-    "server-memory",
-    "server-sequential-thinking",
-}
-
-# Python MCP-Module
-PYTHON_MCP_MODULES = {
-    "mcp",
-    "fastmcp",
-    "mcp_server",
-}
-```
-
-Kritische Prozesse (Windows-Systemdienste, aktive Shells, explorer.exe sowie die eigene Prozesshierarchie) sind konstruktionsbedingt ausgeschlossen.
-
----
+Diese Listen beschreiben Einstiegspunkte für den Abgleich, nicht sämtliche Prozessprüfungen. Die Engine prüft im selben Quellmodul zusätzlich Prozessidentität, Zustand des Elternprozesses, Prozessalter und weitere Bedingungen. Ein passender Einstiegspunkt allein macht einen Prozess noch nicht zum Kandidaten.
 
 <a id="sec-13"></a><a id="audit-logging--forensic-event-schema"></a><a id="audit-protokollierung--forensisches-ereignis-schema"></a>
-## 13. Audit-Protokollierung & Forensisches Ereignis-Schema
+## 13. Protokollierung und Ereignisfelder
 
-Alle Ereignisse werden in `zombie_events.jsonl` fortgeschrieben (lokal, gitignoriert):
+Die Engine hängt JSON-Datensätze an `zombie_events.jsonl` im aktuellen Arbeitsverzeichnis des Prozesses an. Das Tray-Programm setzt das Arbeitsverzeichnis seines Workers auf das Repository-Stammverzeichnis; andere Aufrufer verwenden ihr eigenes aktuelles Arbeitsverzeichnis. Git ignoriert diese Datei. Ein beispielhafter Datensatz sieht so aus:
 
 ```json
 {
-  "timestamp": "2026-09-23T14:00:00+02:00",
-  "action": "terminate",
-  "pid": 14208,
-  "ppid": 8192,
-  "parent_dead": true,
-  "name": "node.exe",
-  "cmdline": ["node.exe", "C:\\Users\\User\\AppData\\Roaming\\npm\\node_modules\\@modelcontextprotocol\\server-filesystem\\dist\\index.js"],
-  "create_time": 1758620000.0,
-  "age_seconds": 3600.0,
-  "cpu_delta": 0.0,
-  "handle_locked": true,
-  "status": "success"
+  "at": 1790940000.0,
+  "event": "terminate-intent",
+  "child": {
+    "pid": 14208,
+    "ppid": 8192,
+    "born": 134000000000000000,
+    "cpu": 0,
+    "exe": "node.exe",
+    "argv": ["node.exe", "<local arguments omitted>"],
+    "kind": "mcp",
+    "parent_dead": true
+  },
+  "parent_last_observed": null
 }
 ```
 
-Kann die Protokolldatei nicht beschrieben werden, bricht der Vorgang sofort ab (`INV-AUDIT-08`).
-
----
+Der Ergebnisdatensatz enthält `child`, `parent_last_observed`, `killed` und `reason`; Zykluszusammenfassungen verwenden `cycle_at`, `apply` und `count`. Welche Felder vorkommen, hängt vom Ereignistyp ab. Die Datensätze werden gewöhnlich angehängt und können bearbeitet werden. Protokolle können Prozesskennungen, Programmnamen, Befehlszeilenargumente und lokale Pfade enthalten; schützen Sie sie entsprechend. Im Ausführungsmodus mit `--yes` wird der Beendigungsversuch abgebrochen, wenn der Intent-Datensatz nicht geschrieben werden kann.
 
 <a id="sec-14"></a><a id="testing--quality-assurance"></a><a id="tests--qualitaetssicherung"></a><a id="tests--qualitätssicherung"></a>
-## 14. Tests & Qualitätssicherung
+## 14. Tests und Qualitätssicherung
 
-Die Codebasis ist durch automatisierte Unit- und Vertragstests abgesichert:
+Das Repository enthält Python-Tests, Ruff-Lintprüfungen und Windows-Prüfungen in GitHub Actions. Die folgenden Befehle können lokal ausgeführt werden; die Ergebnisse hängen von der jeweiligen Umgebung ab und werden nicht durch ein statisches Abzeichen behauptet.
 
 ```powershell
-# Vollständige Testsuite via pytest ausführen
-python -m pytest -ra -v
+# Tests ausführen
+python -m pytest -ra -v .
 
-# Unittest-Module direkt ausführen
+# unittest-kompatible Prüfungen ausführen
 python -m unittest -v test_zombie_killer
 python -m unittest -v tests/test_metadata.py
 
-# Statische Analyse via Ruff
-ruff check .
+# Ruff-Lintprüfungen ausführen
+python -m ruff check .
 
-# Bytecode-Kompilierung prüfen
+# Python-Quellen kompilieren
 python -m compileall -q .
 ```
 
----
-
 <a id="sec-15"></a><a id="security-policy--privacy-governance"></a><a id="sicherheitsrichtlinie--datenschutz-governance"></a>
-## 15. Sicherheitsrichtlinie & Datenschutz-Governance
+## 15. Sicherheitsrichtlinie und Datenschutz
 
-`zombie-killer-tray` folgt einem strikten Zero-Trust- und Privacy-First-Modell:
-- **Zero-Egress (`INV-LOCAL-01`):** Keine Netzwerkverbindungen, keine Telemetrie.
-- **Sicherheits-Response-SLA (`INV-SLA-10`):** 48-Stunden Erstantwort, 5 Werktage Triage.
-- **Meldung:** Sicherheitsrelevante Befunde sind vertraulich an `security@dev-bricks.org` und `security@open-bricks.org` gemäß [SECURITY.md](SECURITY.md) zu melden.
-
----
+Quellcode und Protokolle des Projekts haben unterschiedliche Datenschutzmerkmale:
+- Der geprüfte Erstparteicode für Prozessprüfung und Infobereich enthält keine ausgehenden Netzwerkanfragen. Das ist eine Beobachtung am Quellcode, keine Netzwerkisolation oder absolute Garantie gegen ausgehenden Datenverkehr.
+- `--check` prüft nur das Tray-Skript und lässt es von PowerShell parsen. Der Modus listet keine Prozesse auf, untersucht sie nicht und ändert das Berechtigungstoken des aufrufenden Prozesses nicht.
+- Lokale JSONL- und Diagnoseprotokolle können Prozesskennungen, Programmnamen, Befehlszeilenargumente, Zeitstempel und Pfade enthalten. Behandeln Sie sie als möglicherweise sensible lokale Daten.
+Die veröffentlichten Hinweise zur Meldung von Sicherheitsproblemen stehen in `SECURITY.md`. Diese README sagt weder zu, dass ein bestimmtes Postfach überwacht wird, noch verspricht sie Antwort- oder Triagezeiten.
 
 <a id="sec-16"></a><a id="third-party-transparency--level-1-sbom"></a><a id="drittanbieter-transparenz--level-1-sbom"></a>
-## 16. Drittanbieter-Transparenz & Level 1 SBOM
+## 16. Lizenzen direkter Drittanbieter-Abhängigkeiten
 
-Alle Laufzeit- und Entwicklungsabhängigkeiten unterliegen permissiven Open-Source-Lizenzen (MIT, Apache-2.0, PSFL-2.0, BSD-3-Clause) ohne Copyleft-Einschränkungen. Die vollständige Lizenz- und Invariantenmatrix ist in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) (Text-Begleitdatei: [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt)) dokumentiert.
-
-Urheberrechtshinweise für Lukas Geiger, `dev-bricks` und das `open-bricks` Ökosystem finden sich in [NOTICE](NOTICE).
-
----
+`THIRD_PARTY_LICENSES.md` und die Klartextdatei `THIRD_PARTY_LICENSES.txt` führen ausgewählte direkte Laufzeit- und Entwicklungsabhängigkeiten sowie die dazu erfassten Lizenzen auf. Die Übersicht umfasst nicht den vollständigen transitiven Abhängigkeitsbaum und ist weder eine vollständige SBOM noch eine rechtliche Zertifizierung. Laut Projektmetadaten ist `psutil` die Laufzeitabhängigkeit; seine Upstream-Lizenz ist BSD-3-Clause.
 
 <a id="sec-17"></a><a id="development-build--packaging"></a><a id="entwicklung-build--packaging"></a>
-## 17. Entwicklung, Build & Packaging
+## 17. Entwicklung, Build und Paketierung
 
-Verwendet moderne PEP 517/621 Standards über `pyproject.toml` mit Hatchling als Build-Backend:
+Die Python-Paketmetadaten stehen in `pyproject.toml`; gebaut wird über das dort konfigurierte PEP-517-Backend:
 
 ```powershell
-# Entwicklungsumgebung einrichten
-pip install -e .[dev]
+# Laufzeitabhängigkeiten installieren
+python -m pip install -r requirements.txt
 
-# Distributionspakete (Wheel und Source) bauen
+# Deklarierte Entwicklungsabhängigkeiten installieren
+python -m pip install -e .[dev]
+
+# Build-Frontend installieren
+python -m pip install build
+
+# Quell- und Wheel-Distributionen erstellen
 python -m build
 ```
 
-Detaillierte Mitwirkungsrichtlinien, Plan D lokaler Entwicklungsworkflow, Qualitätstore und Architektur-Invarianten finden sich in [CONTRIBUTING.md](CONTRIBUTING.md).
+Hinweise zur Mitwirkung und zu den dokumentierten Qualitätsprüfungen stehen in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
-## 18. Gesetzlicher Hinweis (§ 521 BGB) & Lizenz-Attribution
+## 18. Lizenz und Namensnennung
 
-### Gesetzliche Haftungsbeschränkung (§ 521 BGB - Gefälligkeitsrecht)
+Dieses Projekt wird unter der [MIT-Lizenz](LICENSE) veröffentlicht. Copyright (c) 2026 Lukas Geiger, dev-bricks und das open-bricks-Dachökosystem.
 
-Diese Software und die zugehörigen Automatisierungen werden unentgeltlich bereitgestellt. Gemäß § 521 BGB ist die Haftung der Autoren und Mitwirkenden auf Vorsatz und grobe Fahrlässigkeit beschränkt. Die Bereitstellung erfolgt wie besehen („as is“) ohne ausdrückliche oder stillschweigende Gewährleistung.
-
-### Lizenz & Urheberrecht
-
-Lizenziert unter den Bedingungen der [MIT-Lizenz](LICENSE). Copyright © 2026 Lukas Geiger, dev-bricks und open-bricks Dachorganisation.
+Dieser Abschnitt enthält keine projektspezifische rechtliche Auslegung gesetzlicher Gewährleistungs- oder Haftungsregeln.

@@ -107,6 +107,7 @@ class Record:
 
 
 def eligible(first: Record, second: Record, min_age: float, now: float) -> bool:
+    """Require minimum process lifetime as well as the independent parent-death gates."""
     return bool(first.kind and first.kind == second.kind
         and first.pid == second.pid and first.ppid == second.ppid
         and first.born == second.born and first.exe == second.exe

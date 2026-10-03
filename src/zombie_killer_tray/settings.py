@@ -8,7 +8,7 @@ type and no new `.gitignore` entry; the setting lives with the rest of
 this tool's local, per-machine state and is never committed.
 
 This module is the single source of truth for the allowed automatic-reap
-intervals, the allowed minimum-orphan-age thresholds, and their
+intervals, the allowed minimum process-age thresholds, and their
 persistence. `zombie_tray.ps1` reads both choice lists from here once at
 startup (one `python -c` call) instead of keeping a second, driftable
 copy of these tables in PowerShell. Loading is fail-safe (a missing,
@@ -60,8 +60,8 @@ INTERVAL_CHOICES: tuple[Choice, ...] = (
     Choice("24 h", 86400),  # = taeglich
 )
 
-# How long a candidate process must already have been orphaned before it
-# is eligible for termination (zombie_killer.py's --min-age).
+# Minimum process age, measured from process creation, before termination
+# is eligible (zombie_killer.py's --min-age). Parent-death checks are separate.
 MIN_AGE_CHOICES: tuple[Choice, ...] = (
     Choice("5 min", 300),
     Choice("10 min", 600),

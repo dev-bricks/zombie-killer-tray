@@ -83,3 +83,4 @@ LOCK.permissions.json
 # Package manager locks
 uv.lock
 !package-lock.json
+MARKETING-LOG.txt
