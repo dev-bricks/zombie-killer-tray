@@ -2,6 +2,8 @@
 
 > 这是一个谨慎的 Windows 系统托盘工具，用于检查选定的 MCP（Model Context Protocol）服务器和语言服务器遗留进程，并可在检查通过后逐个尝试结束进程。它不会笼统地结束整个进程树。
 
+<img src="assets/banner.png" alt="进程检查和语言选择的概念插图" width="100%">
+
 [![归属：通知](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
 [![版本：0.1.0](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![测试工作流程](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml)
@@ -160,17 +162,13 @@ sequenceDiagram
 <a id="sec-07"></a><a id="sibling-ecosystem--partner-tools"></a><a id="geschwister-oekosystem--partner-tools"></a><a id="geschwister-ökosystem--partner-tools"></a>
 ## 7. 相关项目
 
-以下链接指向相关开发组织中的项目。列出这些项目不代表存在技术集成或共享运行时。
+[CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) 可选择以监视模式作为独立进程启动固定版本的 Zombie Killer Tray。下面链接的 MCP 服务器是可选的进程维护候选项。只有当运行命令符合受支持的 `node_modules` 包入口并通过所有现有进程检查与执行操作保护条件时，进程才可能符合条件。列出链接并不表示这些服务器是本项目的依赖或导入模块。
 
-- [CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) - `dev-bricks`
-- [safe-start-for-codex](https://github.com/dev-bricks/safe-start-for-codex) - `dev-bricks`
-- [MethodenAnalyser](https://github.com/dev-bricks/MethodenAnalyser) - `dev-bricks`
-- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) - `ellmos-ai`
-- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) - `ellmos-ai`
-- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) - `ellmos-ai`
-- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) - `ellmos-ai`
-- [CloudLockFixer](https://github.com/file-bricks/CloudLockFixer) - `file-bricks`
-- [DokuZen](https://github.com/doc-bricks/DokuZen) - `doc-bricks`
+- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — 可选的 MCP 服务器候选项
+- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — 可选的 MCP 服务器候选项
+- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — 可选的 MCP 服务器候选项
+- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — 可选的 MCP 服务器候选项
+- [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — 可选的 MCP 服务器候选项
 
 <a id="sec-08"></a><a id="features--capabilities"></a><a id="kernfunktionen--faehigkeiten"></a><a id="kernfunktionen--fähigkeiten"></a>
 ## 8. 功能与能力
