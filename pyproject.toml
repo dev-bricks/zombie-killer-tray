@@ -86,7 +86,7 @@ packages = ["src/zombie_killer_tray"]
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -v --basetemp=.pytest_temp"
-testpaths = [".", "tests"]
+testpaths = ["."]
 python_files = ["test_*.py", "*_test.py"]
 norecursedirs = [".git", ".pytest_cache", ".pytest_temp", ".pytest_tmp*", "__pycache__", "build", "dist", ".venv", "venv", ".tox", ".hypothesis", ".turbo", "src"]
 

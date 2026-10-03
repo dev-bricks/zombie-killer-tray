@@ -46,7 +46,7 @@ _SRC = str(Path(__file__).resolve().parent / "src")
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import zombie_killer_tray.killer as z  # noqa: E402
+import zombie_killer_tray.killer as z
 
 FILETIME_EPOCH = 11644473600
 
