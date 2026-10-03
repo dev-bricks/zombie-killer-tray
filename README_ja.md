@@ -2,6 +2,8 @@
 
 > これは Windows の通知領域で動作する慎重なユーティリティです。選択した MCP（Model Context Protocol）サーバーとランゲージサーバーの孤立プロセスを確認し、所定のチェックを通過した場合に個別終了を試みます。プロセスツリー全体を一括終了することはありません。
 
+<img src="assets/banner.png" alt="プロセス確認と言語選択の概念図" width="100%">
+
 [![帰属表示: NOTICE](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
 [![バージョン: 0.1.0](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![テスト ワークフロー](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml)
@@ -160,17 +162,13 @@ sequenceDiagram
 <a id="sec-07"></a><a id="sibling-ecosystem--partner-tools"></a><a id="geschwister-oekosystem--partner-tools"></a><a id="geschwister-ökosystem--partner-tools"></a>
 ## 7. 関連プロジェクト
 
-以下のリンクは、関連する開発組織のプロジェクトを示します。掲載は、技術的な統合や共通の実行環境を意味しません。
+[CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) は、固定バージョンの Zombie Killer Tray を Watch モードで別プロセスとして任意に起動できます。以下の MCP サーバーは任意のプロセス管理候補です。実行コマンドが対応する `node_modules`／パッケージのエントリポイントに一致し、既存のすべてのプロセス確認と適用時の保護策を満たす場合に限り、候補になります。リンクの掲載は本プロジェクトの依存関係やインポート済みモジュールを意味しません。
 
-- [CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) - `dev-bricks`
-- [safe-start-for-codex](https://github.com/dev-bricks/safe-start-for-codex) - `dev-bricks`
-- [MethodenAnalyser](https://github.com/dev-bricks/MethodenAnalyser) - `dev-bricks`
-- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) - `ellmos-ai`
-- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) - `ellmos-ai`
-- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) - `ellmos-ai`
-- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) - `ellmos-ai`
-- [CloudLockFixer](https://github.com/file-bricks/CloudLockFixer) - `file-bricks`
-- [DokuZen](https://github.com/doc-bricks/DokuZen) - `doc-bricks`
+- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — 任意の MCP サーバー候補
+- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — 任意の MCP サーバー候補
+- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — 任意の MCP サーバー候補
+- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — 任意の MCP サーバー候補
+- [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — 任意の MCP サーバー候補
 
 <a id="sec-08"></a><a id="features--capabilities"></a><a id="kernfunktionen--faehigkeiten"></a><a id="kernfunktionen--fähigkeiten"></a>
 ## 8. 機能

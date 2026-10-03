@@ -2,6 +2,8 @@
 
 > Utilidad prudente para la bandeja del sistema de Windows. Permite revisar procesos huérfanos seleccionados de servidores Model Context Protocol (MCP) y de servidores de lenguaje, y puede intentar terminarlos individualmente tras las comprobaciones previstas. No termina indiscriminadamente árboles completos de procesos.
 
+<img src="assets/banner.png" alt="Ilustración conceptual de comprobaciones de procesos y selección de idioma" width="100%">
+
 [![Atribución: AVISO](https://img.shields.io/badge/Attribution-NOTICE-blue.svg)](NOTICE)
 [![Versión: 0.1.0](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![Flujo de trabajo de pruebas](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/dev-bricks/zombie-killer-tray/actions/workflows/tests.yml)
@@ -160,17 +162,13 @@ El proyecto cubre un flujo concreto: comprueba un conjunto configurado de proces
 <a id="sec-07"></a><a id="sibling-ecosystem--partner-tools"></a><a id="geschwister-oekosystem--partner-tools"></a><a id="geschwister-ökosystem--partner-tools"></a>
 ## 7. Proyectos relacionados
 
-Estos enlaces llevan a proyectos de organizaciones de desarrollo relacionadas. Su inclusión no implica integración técnica ni un entorno de ejecución compartido.
+[CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) puede iniciar opcionalmente una versión fijada de Zombie Killer Tray en modo de vigilancia como proceso independiente. Los servidores MCP enlazados son candidatos opcionales para el mantenimiento de procesos. Un proceso solo puede considerarse si su comando coincide con el punto de entrada admitido del paquete en `node_modules` y supera todas las comprobaciones de proceso y aplicación existentes. Los enlaces no convierten esos servidores en dependencias ni módulos importados del proyecto.
 
-- [CareCenter-for-Codex](https://github.com/dev-bricks/CareCenter-for-Codex) - `dev-bricks`
-- [safe-start-for-codex](https://github.com/dev-bricks/safe-start-for-codex) - `dev-bricks`
-- [MethodenAnalyser](https://github.com/dev-bricks/MethodenAnalyser) - `dev-bricks`
-- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) - `ellmos-ai`
-- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) - `ellmos-ai`
-- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) - `ellmos-ai`
-- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) - `ellmos-ai`
-- [CloudLockFixer](https://github.com/file-bricks/CloudLockFixer) - `file-bricks`
-- [DokuZen](https://github.com/doc-bricks/DokuZen) - `doc-bricks`
+- [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — candidato opcional de servidor MCP
+- [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — candidato opcional de servidor MCP
+- [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — candidato opcional de servidor MCP
+- [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — candidato opcional de servidor MCP
+- [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — candidato opcional de servidor MCP
 
 <a id="sec-08"></a><a id="features--capabilities"></a><a id="kernfunktionen--faehigkeiten"></a><a id="kernfunktionen--fähigkeiten"></a>
 ## 8. Funciones y capacidades
