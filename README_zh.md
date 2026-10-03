@@ -13,6 +13,7 @@
 [![生态系统：dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![所属生态：open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM 友好：llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
+[![源代码审查：2026-10-03](https://img.shields.io/badge/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [英语](README.md) · [德语](README_de.md) · [西班牙语](README_es.md) · [简体中文](README_zh.md) · [日本语](README_ja.md) · [Русский](README_ru.md)
 
@@ -334,6 +335,8 @@ python -m pip install build
 # 构建源码包和 wheel 分发包
 python -m build
 ```
+
+贡献者环境设置和审核清单请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
 ## 18. 许可证与归属说明

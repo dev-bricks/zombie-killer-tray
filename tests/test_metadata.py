@@ -86,18 +86,30 @@ class MetadataContractTests(unittest.TestCase):
             "*conflicted copy*",
             "* (Kopie)*",
             "* (Copy)*",
+            "*.swp",
+            "*.swo",
+            "*~",
+            "TASKPLAN_*.md",
+            "*-TASKPLAN*",
+            "desktop.ini",
+            "ehthumbs.db",
             "*-WORKSTATION*",
             "*-WORKSTATION-LG*",
             "*_WORKSTATION*",
             "*_WORKSTATION-LG*",
             "*-ASUS*",
+            "*-ASUS-GEI.*",
             "*-LAPTOP*",
             "*-IDEAPAD*",
+            "*-IDEAPAD-GEI.*",
             "LOCK",
             "LOCK.*",
             "LOCK.user.*",
             "LOCK.until.*",
             "LOCK.condition.*",
+            "LOCK.dev.*",
+            "LOCK.antigravity.*",
+            "LOCK.bugsearch.*",
             "LOCK.permissions.json",
             "uv.lock",
             "!package-lock.json",
@@ -126,6 +138,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("NOTICE", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.md", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.txt", license_files)
+        self.assertNotIn("CONTRIBUTING.md", license_files)
 
         urls = project.get("urls", {})
         for required_url_key in [
@@ -138,12 +151,17 @@ class MetadataContractTests(unittest.TestCase):
             "Direct Dependency License Summary",
             "Direct Dependency License Summary (Text)",
             "LLM Ready",
+            "Contributing",
             "Parent Organization",
             "Umbrella Ecosystem",
         ]:
             self.assertIn(required_url_key, urls, f"Missing project URL key: {required_url_key}")
 
         self.assertNotIn("Marketing Log", urls)
+        self.assertEqual(
+            urls["Contributing"],
+            "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CONTRIBUTING.md",
+        )
         self.assertNotIn("Level 1 SBOM", urls)
         self.assertNotIn("Plain-Text Licenses", urls)
 
@@ -183,7 +201,7 @@ class MetadataContractTests(unittest.TestCase):
         companion_text = companion.read_text(encoding="utf-8")
         for expected in ["psutil", "BSD-3-Clause", "hatchling", "pytest", "ruff"]:
             self.assertIn(expected, companion_text)
-        self.assertIn("ruff >=0.5.0 — MIT", companion_text)
+        self.assertIn("ruff >=0.5.0 - MIT", companion_text)
         self.assertNotIn("Apache-2.0", companion_text)
         self.assertIn("does not enumerate transitive dependencies", companion_text)
         self.assertNotIn("SBOM", companion_text)
@@ -199,6 +217,32 @@ class MetadataContractTests(unittest.TestCase):
         for withdrawn in ["48 hours", "48-hour", "5 business days", "INV-SLA-10", "521 BGB"]:
             self.assertNotIn(withdrawn, text)
 
+    def test_contributing_guidance_is_bilingual_and_bounded(self):
+        path = ROOT / "CONTRIBUTING.md"
+        self.assertTrue(path.is_file(), "CONTRIBUTING.md must exist")
+        source = path.read_text(encoding="utf-8")
+        self.assertIn('<a id="english"></a>', source)
+        self.assertIn('<a id="deutsch"></a>', source)
+        self.assertIn("python -m pytest -ra -v .", source)
+        self.assertIn("Führe die vollständige Testsammlung", source)
+        self.assertEqual(source.count("**") % 2, 0, "Bold markers must be balanced")
+        for withdrawn in ["RunAsInvoker", "§ 521 BGB", "48-hour", "5-business-day"]:
+            self.assertNotIn(withdrawn, source)
+        self.assertNotRegex(source, r"(?i)\b[A-Z]:\\", "Contributor instructions must not embed host paths")
+        for label in [
+            "Configured entrypoint matching",
+            "Parent-state checks",
+            "Separate observations",
+            "Identity and CPU comparison",
+            "Minimum process age",
+            "Retained process handle",
+            "Individual action",
+            "Pre-termination intent record",
+            "Write-failure handling",
+        ]:
+            self.assertIn(label, source)
+        self.assertEqual(source.count("\n1. "), 2, "Each language should start its safeguards list once")
+
     def test_documentation_six_languages_share_structure_and_navigation(self):
         files = ["README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md"]
         documents = {}
@@ -208,6 +252,8 @@ class MetadataContractTests(unittest.TestCase):
             documents[filename] = path.read_text(encoding="utf-8")
 
         for filename, source in documents.items():
+            self.assertIn("CONTRIBUTING.md", source, f"{filename} must link to contributor guidance")
+            self.assertIn("2026-10-03", "\n".join(source.splitlines()[:25]), f"{filename} must date the source review")
             for other in files:
                 if other != filename:
                     self.assertIn(other, source, f"{filename} must link to {other}")
@@ -251,6 +297,10 @@ class MetadataContractTests(unittest.TestCase):
         text = changelog.read_text(encoding="utf-8")
 
         self.assertIn("## [Unreleased]", text)
+        self.assertIn("## Historical Unreleased Entry (2026-10-03; corrected above)", text)
+        self.assertIn("## Historical Unreleased Entry (2026-10-01)", text)
+        self.assertEqual(text.count("## [Unreleased]"), 1)
+        self.assertIn("are withdrawn", text)
         self.assertIn("## 0.1.0", text)
         self.assertNotIn("## 0.2.0", text, "Version bump forbidden in Pfad A/B")
 
@@ -264,6 +314,8 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("not an OS-level network block", source)
         self.assertIn("not a complete transitive dependency inventory", source)
         self.assertIn("No response-time SLA", source)
+        self.assertIn("Last-checked: 2026-10-03", source)
+        self.assertIn("CONTRIBUTING.md", source)
         for withdrawn in ["INV-SLA-10", "521 BGB", "Level 1 SBOM", "100% Local-First & Zero Egress"]:
             self.assertNotIn(withdrawn, source)
 
@@ -284,7 +336,7 @@ class MetadataContractTests(unittest.TestCase):
     def test_public_docs_do_not_restore_withdrawn_assurance_claims(self):
         public_docs = [
             "README.md", "README_de.md", "README_es.md", "README_zh.md", "README_ja.md", "README_ru.md",
-            "SECURITY.md", "llms.txt", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt",
+            "SECURITY.md", "llms.txt", "CONTRIBUTING.md", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt",
         ]
         source = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in public_docs).casefold()
         for withdrawn in [

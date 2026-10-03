@@ -13,6 +13,8 @@
 [![Ökosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Dachorganisation: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
+[![Stand: 2026-10-03](https://img.shields.io/badge/stand-2026--10--03-informational.svg)](CHANGELOG.md)
+[![Quellprüfung: 2026-10-03](https://img.shields.io/badge/Quellpr%C3%BCfung-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [Englisch](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [简体中文](README_zh.md) · [日本語](README_ja.md) · [Russisch](README_ru.md)
 
@@ -334,6 +336,10 @@ python -m pip install build
 # Quell- und Wheel-Distributionen erstellen
 python -m build
 ```
+
+Hinweise zur Mitwirkung und zu den dokumentierten Qualitätsprüfungen stehen in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
 ## 18. Lizenz und Namensnennung

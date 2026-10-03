@@ -6,17 +6,17 @@ Project license: MIT. See LICENSE and NOTICE.
 This file lists direct runtime, build, and development dependencies and their recorded upstream license identifiers. It does not enumerate transitive dependencies, verify every distributed artifact, or certify legal compliance. Check the license file for the exact version used in a distribution.
 
 Runtime dependency
-- psutil >=7.2,<8 — BSD-3-Clause
+- psutil >=7.2,<8 - BSD-3-Clause
   https://github.com/giampaolo/psutil/blob/master/LICENSE
 
 Build backend
-- hatchling >=1.24 — MIT
+- hatchling >=1.24 - MIT
   https://github.com/pypa/hatch/blob/master/LICENSE.txt
 
 Development dependencies
-- pytest >=9.1.1 — MIT
+- pytest >=9.1.1 - MIT
   https://github.com/pytest-dev/pytest/blob/main/LICENSE
-- ruff >=0.5.0 — MIT
+- ruff >=0.5.0 - MIT
   https://github.com/astral-sh/ruff/blob/main/LICENSE
 
 The Python standard library is supplied with the selected Python interpreter. It is not a separately declared third-party dependency in pyproject.toml and is not listed here.

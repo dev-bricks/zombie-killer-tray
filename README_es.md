@@ -13,6 +13,7 @@
 [![Ecosistema: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Organización paraguas: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM listo: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
+[![Revisión del código fuente: 2026-10-03](https://img.shields.io/badge/revisi%C3%B3n--del--c%C3%B3digo--fuente-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [Inglés](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [简体中文](README_zh.md) · [日本語](README_ja.md) · [Русский](README_ru.md)
 
@@ -335,6 +336,8 @@ python -m pip install build
 # Crear las distribuciones de código fuente y wheel
 python -m build
 ```
+
+Para la configuración para colaboradores y la lista de comprobación, consulta [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
 ## 18. Licencia y atribución

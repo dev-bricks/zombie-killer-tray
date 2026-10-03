@@ -13,6 +13,7 @@
 [![エコシステム: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![統括エコシステム: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM 対応: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
+[![ソース確認: 2026-10-03](https://img.shields.io/badge/%E3%82%BD%E3%83%BC%E3%82%B9%E7%A2%BA%E8%AA%8D-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [英語](README.md) · [ドイツ語](README_de.md) · [スペイン語](README_es.md) · [简体中文](README_zh.md) · [日本語](README_ja.md) · [Русский](README_ru.md)
 
@@ -334,6 +335,8 @@ python -m pip install build
 # ソース配布物と wheel をビルド
 python -m build
 ```
+
+開発者向けのセットアップとレビュー項目は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
 ## 18. ライセンスと帰属表示

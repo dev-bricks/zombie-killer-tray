@@ -13,6 +13,7 @@
 [![Экосистема: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Экосистема open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![Документация для LLM: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
+[![Проверка исходного кода: 2026-10-03](https://img.shields.io/badge/%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B0--%D0%B8%D1%81%D1%85%D0%BE%D0%B4%D0%BD%D0%BE%D0%B3%D0%BE--%D0%BA%D0%BE%D0%B4%D0%B0-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [Английский](README.md) · [Немецкий](README_de.md) · [Испанский](README_es.md) · [简体中文](README_zh.md) · [日本語](README_ja.md) · [Русский](README_ru.md)
 
@@ -334,6 +335,8 @@ python -m pip install build
 # Собрать исходный архив и wheel
 python -m build
 ```
+
+Инструкции по настройке для участников и проверочный список приведены в [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <a id="sec-18"></a><a id="statutory-notice--521-bgb--license-attribution"></a><a id="gesetzlicher-hinweis--521-bgb--lizenz-attribution"></a>
 ## 18. Лицензия и указание авторства

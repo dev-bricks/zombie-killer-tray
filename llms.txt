@@ -2,6 +2,7 @@
 
 > Source version declared in `pyproject.toml`: 0.1.0. This declaration does not establish that a package release has occurred.
 > Source review date: 2026-10-03.
+> Last-checked: 2026-10-03.
 > Project license: MIT (`LICENSE` and `NOTICE`).
 
 ## Summary
@@ -42,6 +43,8 @@ python -m compileall -q .
 ```
 
 The full pytest command collects the repository's root tests and metadata tests. Test results depend on the environment; this file does not claim that a host-process smoke test has been run.
+
+For the contributor setup and review checklist, see `CONTRIBUTING.md`.
 
 ## Dependency and license scope
 
