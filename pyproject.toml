@@ -33,7 +33,7 @@ keywords = [
   "task-manager",
   "win32",
   "windows",
-  "zero-egress",
+  "process-cleanup",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -68,12 +68,9 @@ Changelog = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CHANGELO
 Security = "https://github.com/dev-bricks/zombie-killer-tray/security/advisories"
 "Parent Organization" = "https://github.com/dev-bricks"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
-"Third-Party Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.md"
-"Third-Party Licenses (Text)" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
-"Plain-Text Licenses" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
-"Level 1 SBOM" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
+"Direct Dependency License Summary" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.md"
+"Direct Dependency License Summary (Text)" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/THIRD_PARTY_LICENSES.txt"
 Notice = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/NOTICE"
-"Marketing Log" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/MARKETING-LOG.txt"
 "LLM Ready" = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/llms.txt"
 
 [tool.hatch.build.targets.wheel]

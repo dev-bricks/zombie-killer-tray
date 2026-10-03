@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `llms.txt` with current architectural context, 18-point navigation index, and test baselines.
 - Cleaned Win32 helper methods and code formatting in `zombie_killer.py` and `test_zombie_killer.py`.
 
+### Corrected (2026-10-03)
+
+- Earlier text in this Unreleased record and associated project documents overstated offline and zero-egress boundaries, air-gap protection, universal safety guarantees, security response timing, license completeness, and a legal outcome under § 521 BGB. Those assertions are withdrawn. Current documents describe observed source behavior with explicit limits; no response-time SLA, compliance certification, or complete transitive dependency inventory is claimed.
+- The tray menu, tooltip, and language selector support English, German, Spanish, Simplified Chinese, Japanese, and Russian. The six README files describe the corresponding user-facing languages.
+- The default pytest collection includes the repository-root tests and metadata tests together. License notes and package links are scoped to directly declared dependencies; Ruff's recorded license reference now points to its upstream MIT license. The internal marketing log is no longer tracked and is ignored locally.
+
+
 ## 0.1.0 - 2026-09-21
 
 - Add conservative Windows zombie killer tray for orphaned MCP and language
