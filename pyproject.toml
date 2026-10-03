@@ -9,7 +9,7 @@ description = "Conservative Windows tray utility for cleaning up orphaned MCP an
 readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
-license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt"]
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt", "CONTRIBUTING.md"]
 authors = [
   { name = "Lukas Geiger" }
 ]
@@ -65,6 +65,7 @@ Repository = "https://github.com/dev-bricks/zombie-killer-tray"
 Issues = "https://github.com/dev-bricks/zombie-killer-tray/issues"
 "Bug Tracker" = "https://github.com/dev-bricks/zombie-killer-tray/issues"
 Changelog = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CHANGELOG.md"
+Contributing = "https://github.com/dev-bricks/zombie-killer-tray/blob/main/CONTRIBUTING.md"
 Security = "https://github.com/dev-bricks/zombie-killer-tray/security/advisories"
 "Parent Organization" = "https://github.com/dev-bricks"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"

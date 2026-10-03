@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-10-03
+
+### Added
+- Repository Hygiene & Contributing Guidelines: Canonical bilingual `CONTRIBUTING.md` guidelines (English / Deutsch) detailing the 10 governance and runtime invariants (`INV-LOCAL-01` through `INV-SLA-10`), unprivileged `RunAsInvoker` mode (`INV-SEC-02`), Plan D local development workflow (`C:\_Local_DEV\repos\zombie-killer-tray` as Source of Truth), § 521 BGB Gefälligkeitsrecht statutory disclaimer, and 48-hour security response SLA.
+- PEP 621 Metadata Alignment: Registered `"Contributing"` URL under `[project.urls]` in `pyproject.toml` and added `"CONTRIBUTING.md"` to the `license-files` manifest array.
+- Multi-Host Lock & OS Defense: Hardened `.gitignore` with Windows system files (`desktop.ini`, `ehthumbs.db`), editor backup patterns (`*.swp`, `*.swo`, `*~`), transient agent tasks (`TASKPLAN_*.md`, `*-TASKPLAN*`), multi-host collision tokens (`*-ASUS-GEI.*`, `*-IDEAPAD-GEI.*`), and canonical lock prefixes (`LOCK.dev.*`, `LOCK.antigravity.*`, `LOCK.bugsearch.*`).
+- Level 1 SBOM Recency Re-Audit (Stand 2026-10-03): Re-certified `THIRD_PARTY_LICENSES.md` and plain-text companion `THIRD_PARTY_LICENSES.txt` with zero copyleft, 100% permissive runtime stack (`psutil` BSD-3-Clause, PSFL-2.0, MIT), and complete invariant compliance.
+- Badges & Documentation Synchronization: Updated `Verified: 2026-10-03` / `Geprüft: 2026-10-03` and `Last Checked: 2026-10-03` / `Stand: 2026-10-03` status badges across `README.md` and `README_de.md`; synchronized `llms.txt` RAG context (Last-checked: 2026-10-03).
+- Automated Contract Tests: Expanded `tests/test_metadata.py` with contract tests for bilingual `CONTRIBUTING.md` guidelines, PEP 621 Contributing URL and license-file registration, hardened `.gitignore` defense patterns, and 2026-10-03 audit recency.
+
 ## [Unreleased] - 2026-10-01
 
 ### Added

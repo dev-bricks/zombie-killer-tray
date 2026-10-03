@@ -1,10 +1,10 @@
 # Zombie Killer Tray (dev-bricks/zombie-killer-tray)
 
-> Last-checked: 2026-10-01
+> Last-checked: 2026-10-03
 > Version: 0.1.0
 > Organization: dev-bricks
 > Umbrella Ecosystem: open-bricks
-> License: MIT (Attribution: NOTICE, Level 1 SBOM: THIRD_PARTY_LICENSES.md, Plain-Text: THIRD_PARTY_LICENSES.txt)
+> License: MIT (Attribution: NOTICE, Level 1 SBOM: THIRD_PARTY_LICENSES.md, Plain-Text: THIRD_PARTY_LICENSES.txt, Contributing: CONTRIBUTING.md)
 
 ## Summary for LLMs & AI Agents
 

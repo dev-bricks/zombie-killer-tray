@@ -18,8 +18,8 @@
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Last Checked: 2026-10-01](https://img.shields.io/badge/last--checked-2026--10--01-informational.svg)](CHANGELOG.md)
-[![Verified: 2026-10-01](https://img.shields.io/badge/Verified-2026--10--01-blue.svg)](CHANGELOG.md)
+[![Last Checked: 2026-10-03](https://img.shields.io/badge/last--checked-2026--10--03-informational.svg)](CHANGELOG.md)
+[![Verified: 2026-10-03](https://img.shields.io/badge/Verified-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -503,6 +503,8 @@ pip install -e .[dev]
 # Build distributable source and wheel packages
 python -m build
 ```
+
+For detailed contributor guidelines, Plan D local development workflow, quality gates, and architectural invariants, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

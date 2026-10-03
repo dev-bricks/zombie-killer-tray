@@ -18,8 +18,8 @@
 [![Ecosystem: dev-bricks](https://img.shields.io/badge/ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
 [![Umbrella: open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blue.svg)](https://github.com/open-bricks)
 [![LLM Ready: llms.txt](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet.svg)](llms.txt)
-[![Stand: 2026-10-01](https://img.shields.io/badge/stand-2026--10--01-informational.svg)](CHANGELOG.md)
-[![Geprüft: 2026-10-01](https://img.shields.io/badge/Gepr%C3%BCft-2026--10--01-blue.svg)](CHANGELOG.md)
+[![Stand: 2026-10-03](https://img.shields.io/badge/stand-2026--10--03-informational.svg)](CHANGELOG.md)
+[![Geprüft: 2026-10-03](https://img.shields.io/badge/Gepr%C3%BCft-2026--10--03-blue.svg)](CHANGELOG.md)
 
 [English](README.md) · [Deutsch](README_de.md)
 
@@ -503,6 +503,8 @@ pip install -e .[dev]
 # Distributionspakete (Wheel und Source) bauen
 python -m build
 ```
+
+Detaillierte Mitwirkungsrichtlinien, Plan D lokaler Entwicklungsworkflow, Qualitätstore und Architektur-Invarianten finden sich in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

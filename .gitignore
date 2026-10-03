@@ -23,6 +23,11 @@ zombie_worker_errors.log
 *.bak
 *.orig
 *.rej
+*.swp
+*.swo
+*~
+TASKPLAN_*.md
+*-TASKPLAN*
 
 # Test & coverage
 .coverage*
@@ -39,6 +44,8 @@ htmlcov/
 .vscode/
 Thumbs.db
 Desktop.ini
+desktop.ini
+ehthumbs.db
 
 # Multi-host sync conflict copies
 *conflicted copy*
@@ -52,9 +59,11 @@ Desktop.ini
 *-WORKSTATION-LG.*
 *-ASUS*
 *-ASUS-GEI*
+*-ASUS-GEI.*
 *-LAPTOP*
 *-IDEAPAD*
 *-IDEAPAD-GEI*
+*-IDEAPAD-GEI.*
 *-Mac Studio*
 *-MacBook*
 
@@ -65,6 +74,9 @@ LOCK*.txt
 LOCK.user.*
 LOCK.until.*
 LOCK.condition.*
+LOCK.dev.*
+LOCK.antigravity.*
+LOCK.bugsearch.*
 LOCK.permissions.json
 .automation-lock
 

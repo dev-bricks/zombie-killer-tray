@@ -99,6 +99,17 @@ class MetadataContractTests(unittest.TestCase):
             "LOCK.until.*",
             "LOCK.condition.*",
             "LOCK.permissions.json",
+            "LOCK.dev.*",
+            "LOCK.antigravity.*",
+            "LOCK.bugsearch.*",
+            "*-ASUS-GEI.*",
+            "*-IDEAPAD-GEI.*",
+            "desktop.ini",
+            "ehthumbs.db",
+            "TASKPLAN_*.md",
+            "*-TASKPLAN*",
+            "*.swp",
+            "*.swo",
             "uv.lock",
             "!package-lock.json",
             "zombie_events.jsonl",
@@ -125,6 +136,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("NOTICE", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.md", license_files)
         self.assertIn("THIRD_PARTY_LICENSES.txt", license_files)
+        self.assertIn("CONTRIBUTING.md", license_files)
 
         urls = project.get("urls", {})
         for required_url_key in [
@@ -132,6 +144,8 @@ class MetadataContractTests(unittest.TestCase):
             "Documentation",
             "Repository",
             "Issues",
+            "Changelog",
+            "Contributing",
             "Security",
             "Notice",
             "Third-Party Licenses",
@@ -159,7 +173,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertTrue(sbom.is_file(), "THIRD_PARTY_LICENSES.md must exist")
         text = sbom.read_text(encoding="utf-8")
 
-        self.assertIn("Audited:** 2026-10-01", text, "THIRD_PARTY_LICENSES.md audit date must be 2026-10-01")
+        self.assertIn("Audited:** 2026-10-03", text, "THIRD_PARTY_LICENSES.md audit date must be 2026-10-03")
         self.assertIn("[NOTICE](NOTICE)", text)
         self.assertIn("psutil", text)
         self.assertIn("BSD-3-Clause", text)
@@ -185,8 +199,8 @@ class MetadataContractTests(unittest.TestCase):
         sbom_txt = ROOT / "THIRD_PARTY_LICENSES.txt"
         self.assertTrue(sbom_txt.is_file(), "THIRD_PARTY_LICENSES.txt must exist")
         txt_content = sbom_txt.read_text(encoding="utf-8")
-        self.assertIn("Audit Date: 2026-10-01", txt_content)
-        self.assertIn("Stand 2026-10-01", txt_content)
+        self.assertIn("Audit Date: 2026-10-03", txt_content)
+        self.assertIn("Stand 2026-10-03", txt_content)
         self.assertIn("psutil", txt_content)
         self.assertIn("BSD-3-Clause", txt_content)
         self.assertIn("Python Standard Library", txt_content)
@@ -237,10 +251,12 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("521 BGB", de_text)
         self.assertIn("Attribution-NOTICE-blue.svg", en_text)
         self.assertIn("Attribution-NOTICE-blue.svg", de_text)
-        self.assertIn("Verified: 2026-10-01", en_text)
-        self.assertIn("Geprüft: 2026-10-01", de_text)
+        self.assertIn("Verified: 2026-10-03", en_text)
+        self.assertIn("Geprüft: 2026-10-03", de_text)
         self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", en_text)
         self.assertIn("Level%201%20SBOM-Plain%20Text%20Audited-blue.svg", de_text)
+        self.assertIn("CONTRIBUTING.md", en_text)
+        self.assertIn("CONTRIBUTING.md", de_text)
 
         # Invariants INV-LOCAL-01 through INV-SLA-10 in both
         for inv_code in [
@@ -293,13 +309,14 @@ class MetadataContractTests(unittest.TestCase):
         self.assertTrue(llms.is_file(), "llms.txt must exist")
         text = llms.read_text(encoding="utf-8")
 
-        self.assertIn("Last-checked: 2026-10-01", text, "llms.txt Last-checked date must be 2026-10-01")
+        self.assertIn("Last-checked: 2026-10-03", text, "llms.txt Last-checked date must be 2026-10-03")
         self.assertIn("0.1.0", text)
         self.assertIn("521 BGB", text)
         self.assertIn("INV-LOCAL-01", text)
         self.assertIn("INV-SLA-10", text)
         self.assertIn("[PERSONA-01]", text)
         self.assertIn("THIRD_PARTY_LICENSES.txt", text)
+        self.assertIn("CONTRIBUTING.md", text)
 
     def test_marketing_log_present_and_valid(self):
         mkt = ROOT / "MARKETING-LOG.txt"
@@ -310,6 +327,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("ACTION: PFAD_B_MARKETING", text)
         self.assertIn("ACTION: PFAD_A_HYGIENE", text)
         self.assertIn("2026-10-01", text)
+        self.assertIn("2026-10-03", text)
         self.assertIn("Version: 0.1.0", text)
         self.assertIn("[PERSONA-01]", text)
         self.assertIn("INV-LOCAL-01", text)
@@ -338,6 +356,42 @@ class MetadataContractTests(unittest.TestCase):
         ]
         for sicht_header in expected_de_sichten:
             self.assertIn(sicht_header, de_text, f"README_de.md missing ASCII topology sicht: {sicht_header}")
+
+    def test_contributing_bilingual_guidelines_and_invariants(self):
+        contrib = ROOT / "CONTRIBUTING.md"
+        self.assertTrue(contrib.is_file(), "CONTRIBUTING.md must exist in repository root")
+        text = contrib.read_text(encoding="utf-8")
+
+        # Bilingual navigation and sections
+        self.assertIn("#english", text)
+        self.assertIn("#deutsch", text)
+        self.assertIn("## English", text)
+        self.assertIn("## Deutsch", text)
+
+        # 10 Governance and Runtime Invariants
+        expected_invariants = [
+            "INV-LOCAL-01",
+            "INV-SEC-02",
+            "INV-PARENT-03",
+            "INV-STABLE-04",
+            "INV-HANDLE-05",
+            "INV-ALLOW-06",
+            "INV-NOTREE-07",
+            "INV-AUDIT-08",
+            "INV-AGE-09",
+            "INV-SLA-10",
+        ]
+        for inv_code in expected_invariants:
+            self.assertIn(inv_code, text, f"Missing {inv_code} in CONTRIBUTING.md")
+
+        # Workflow, legal and security commitments
+        self.assertIn("RunAsInvoker", text)
+        self.assertIn("Plan D", text)
+        self.assertIn("C:\\_Local_DEV\\repos\\zombie-killer-tray", text)
+        self.assertIn("521 BGB", text)
+        self.assertIn("T-20260920-167562623", text)
+        self.assertIn("security@dev-bricks.org", text)
+        self.assertIn("security@open-bricks.org", text)
 
 
 if __name__ == "__main__":
