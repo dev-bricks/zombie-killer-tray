@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Antigravity's bundled `language_server.exe` (only under its install path `…/Antigravity/resources/bin/`) is now a language-server target, so its parentless `multicall schedule` jobs are reaped like other orphaned language servers. On 2026-10-17, 170 of them (about 6 GB) sat without a parent while the reaper reported 0, because the image name was not a target. Other `language_server.exe` images stay untouched.
+
 ### Changed
 - Replaced overstated process-safety, network, audit, support, and license claims with descriptions scoped to source behavior and the listed direct dependencies.
 - Added six-language tray documentation and a bilingual contributor guide with reproducible local checks.

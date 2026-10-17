@@ -90,6 +90,8 @@ class SafetyTests(unittest.TestCase):
             ('C:/python.exe',['python.exe','-c','print("mcp")']),
             ('C:/node.exe',['node.exe','C:/node_modules/ellmos-filecommander-mcp/test/test.js']),
             ('C:/node.exe',['node.exe','C:/node_modules/unknown-mcp/index.js']),
+            # Same file name outside Antigravity's install location is not a target.
+            ('C:/tools/language_server.exe',['language_server.exe','multicall','schedule','43 14 * * *']),
         ]:
             self.assertEqual(z.classify(exe,args),'')
 
@@ -97,6 +99,16 @@ class SafetyTests(unittest.TestCase):
         self.assertEqual(z.classify('C:/node.exe',['node.exe','C:/node_modules/ellmos-filecommander-mcp/dist/index.js']),'mcp')
         self.assertEqual(z.classify('C:/node.exe',['node.exe','C:/node_modules/n8n-manager-mcp/dist/index.js']),'mcp')
         self.assertEqual(z.classify('C:/python.exe',['python.exe','-m','pylsp']),'language-server')
+        self.assertEqual(z.classify(r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\bin\language_server.exe',
+            ['language_server.exe','multicall','schedule','43 14 * * *']),'language-server')
+
+    def test_snapshot_inspects_antigravity_language_server(self):
+        self.api.process_table=lambda:[(self.r.pid,self.r.ppid,'language_server.exe')]
+        self.api.image=lambda h:r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\bin\language_server.exe'
+        with patch.object(z.psutil,'Process') as process:
+            process.return_value.cmdline.return_value=['language_server.exe','multicall','schedule','43 14 * * *']
+            records,_=z.snapshot(self.api)
+        self.assertEqual(records[self.r.pid].kind,'language-server')
 
     def test_cycle_requires_two_samples(self):
         later=dataclasses.replace(self.r,cpu=24)

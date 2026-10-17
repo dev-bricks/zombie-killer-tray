@@ -15,6 +15,12 @@ from pathlib import Path
 import psutil
 
 LSP = frozenset({'rust-analyzer.exe', 'clangd.exe', 'gopls.exe', 'zls.exe'})
+# Antigravity's bundled language_server.exe also hosts its "multicall schedule"
+# jobs, which outlive the IDE: 170 of them (6 GB) sat parentless on 2026-10-17
+# while this reaper reported 0, because the image name was not a target.
+# Only the exact install location counts, never the generic file name.
+ANTIGRAVITY_LS = 'language_server.exe'
+ANTIGRAVITY_BIN = '/antigravity/resources/bin/'
 NODE_ENTRIES = frozenset({'typescript-language-server', 'pyright-langserver',
     'yaml-language-server', 'bash-language-server', 'vscode-json-languageserver'})
 MCP_PACKAGES = frozenset({'ellmos-filecommander-mcp', 'ellmos-codecommander-mcp',
@@ -42,6 +48,8 @@ def classify(exe: str, argv: list[str]) -> str:
     name = Path(exe).name.lower()
     if name in LSP:
         return 'language-server'
+    if name == ANTIGRAVITY_LS:
+        return 'language-server' if ANTIGRAVITY_BIN in exe.replace('\\', '/').lower() else ''
     if name in {'python.exe', 'pythonw.exe', 'python3.exe'}:
         if len(argv) >= 3 and argv[1] == '-m' and argv[2] in PYTHON_MODULES:
             return 'language-server' if argv[2] in {'pylsp', 'jedi_language_server'} else 'mcp'
@@ -221,7 +229,7 @@ def snapshot(api, deadline=None):
     records = {}
     identities = {}
     table_started = time.time()
-    allowed_names = LSP | {'node.exe','python.exe','pythonw.exe','python3.exe'}
+    allowed_names = LSP | {ANTIGRAVITY_LS,'node.exe','python.exe','pythonw.exe','python3.exe'}
     for pid,ppid,name in api.process_table():
         if deadline is not None and time.monotonic() > deadline:
             raise TimeoutError('read-only process snapshot deadline exceeded')
