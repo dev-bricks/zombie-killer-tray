@@ -247,12 +247,13 @@ python -m zombie_killer_tray scan
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Список разрешённых точек входа и правила отбора процессов
 
-Процесс-кандидат должен соответствовать одной из групп точек входа, определённых в [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26):
+Процесс-кандидат должен соответствовать одной из групп точек входа, определённых в [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34):
 
 - **Исполняемые файлы LSP:** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Точки входа Node.js:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
 - **Пакеты MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
 - **Модули Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **Задания планировщика Antigravity:** `language_server.exe` только из пути установки, заканчивающегося на `/Antigravity/resources/bin/`, и только с аргументами `multicall schedule`.
 
 Эти группы описывают точки входа для отбора, а не все проверки процессов. В том же исходном модуле дополнительно проверяются идентификатор процесса, состояние родительского процесса, возраст и другие условия безопасности. Совпадения с точкой входа недостаточно, чтобы процесс стал подходящим кандидатом.
 

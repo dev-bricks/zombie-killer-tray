@@ -92,6 +92,13 @@ class SafetyTests(unittest.TestCase):
             ('C:/node.exe',['node.exe','C:/node_modules/unknown-mcp/index.js']),
             # Same file name outside Antigravity's install location is not a target.
             ('C:/tools/language_server.exe',['language_server.exe','multicall','schedule','43 14 * * *']),
+            # Near misses: wrong folder under the install, a subfolder below bin, the IDE's own session.
+            (r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\app\language_server.exe',
+             ['language_server.exe','multicall','schedule','43 14 * * *']),
+            (r'D:\Temp\Antigravity\resources\bin\evil\language_server.exe',
+             ['language_server.exe','multicall','schedule','43 14 * * *']),
+            (r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\bin\language_server.exe',
+             ['language_server.exe','--stdio']),
         ]:
             self.assertEqual(z.classify(exe,args),'')
 

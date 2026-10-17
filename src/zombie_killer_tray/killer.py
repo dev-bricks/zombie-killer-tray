@@ -18,9 +18,11 @@ LSP = frozenset({'rust-analyzer.exe', 'clangd.exe', 'gopls.exe', 'zls.exe'})
 # Antigravity's bundled language_server.exe also hosts its "multicall schedule"
 # jobs, which outlive the IDE: 170 of them (6 GB) sat parentless on 2026-10-17
 # while this reaper reported 0, because the image name was not a target.
-# Only the exact install location counts, never the generic file name.
+# Only that exact image path plus the scheduler argv counts; the IDE's own
+# language-server sessions and any other language_server.exe stay untargeted.
 ANTIGRAVITY_LS = 'language_server.exe'
-ANTIGRAVITY_BIN = '/antigravity/resources/bin/'
+ANTIGRAVITY_IMAGE = '/antigravity/resources/bin/' + ANTIGRAVITY_LS
+ANTIGRAVITY_SCHEDULE = ('multicall', 'schedule')
 NODE_ENTRIES = frozenset({'typescript-language-server', 'pyright-langserver',
     'yaml-language-server', 'bash-language-server', 'vscode-json-languageserver'})
 MCP_PACKAGES = frozenset({'ellmos-filecommander-mcp', 'ellmos-codecommander-mcp',
@@ -49,7 +51,9 @@ def classify(exe: str, argv: list[str]) -> str:
     if name in LSP:
         return 'language-server'
     if name == ANTIGRAVITY_LS:
-        return 'language-server' if ANTIGRAVITY_BIN in exe.replace('\\', '/').lower() else ''
+        scheduler = (exe.replace('\\', '/').lower().endswith(ANTIGRAVITY_IMAGE)
+                     and tuple(argv[1:3]) == ANTIGRAVITY_SCHEDULE)
+        return 'language-server' if scheduler else ''
     if name in {'python.exe', 'pythonw.exe', 'python3.exe'}:
         if len(argv) >= 3 and argv[1] == '-m' and argv[2] in PYTHON_MODULES:
             return 'language-server' if argv[2] in {'pylsp', 'jedi_language_server'} else 'mcp'
