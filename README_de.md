@@ -248,12 +248,13 @@ Die Engine schreibt ihr JSONL-Protokoll und Fehlerdateien des Workers in das akt
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Zulassungsliste und Regeln für Prozesskandidaten
 
-Ein Kandidat muss zu einem der in der Quelle definierten Einstiegspunktsätze in [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26) passen:
+Ein Kandidat muss zu einem der in der Quelle definierten Einstiegspunktsätze in [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34) passen:
 
 - **LSP-Programme:** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Node-Einstiegspunkte:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
 - **MCP-Pakete:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
 - **Python-Module:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **Antigravity-Scheduler-Jobs:** `language_server.exe` nur aus dem Installationspfad, der auf `/Antigravity/resources/bin/` endet, und nur mit den Argumenten `multicall schedule`.
 
 Diese Listen beschreiben Einstiegspunkte für den Abgleich, nicht sämtliche Prozessprüfungen. Die Engine prüft im selben Quellmodul zusätzlich Prozessidentität, Zustand des Elternprozesses, Prozessalter und weitere Bedingungen. Ein passender Einstiegspunkt allein macht einen Prozess noch nicht zum Kandidaten.
 

@@ -247,12 +247,13 @@ python -m zombie_killer_tray scan
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. 許可リストと候補プロセスの条件
 
-候補は [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26) に定義された次のエントリーポイント群のいずれかに一致する必要があります。
+候補は [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34) に定義された次のエントリーポイント群のいずれかに一致する必要があります。
 
 - **LSP 実行ファイル：** `rust-analyzer.exe`、`clangd.exe`、`gopls.exe`、`zls.exe`。
 - **Node.js エントリーポイント：** `typescript-language-server`、`pyright-langserver`、`yaml-language-server`、`bash-language-server`、`vscode-json-languageserver`。
 - **MCP パッケージ：** `ellmos-filecommander-mcp`、`ellmos-codecommander-mcp`、`ellmos-controlcenter-mcp`、`ellmos-clatcher-mcp`、`ellmos-n8n-manager-mcp`、`n8n-manager-mcp`、`@modelcontextprotocol/server-filesystem`、`@modelcontextprotocol/server-memory`、`@modelcontextprotocol/server-sequential-thinking`、`@upstash/context7-mcp`。
 - **Python モジュール：** `pylsp`、`jedi_language_server`、`mcp_server_git`、`mcp_server_fetch`、`mcp_server_time`。
+- **Antigravity スケジューラジョブ：** `/Antigravity/resources/bin/` で終わるインストールパスの `language_server.exe` のみ、かつ引数が `multicall schedule` の場合のみ。
 
 この一覧は照合対象のエントリーポイントを示すもので、すべてのプロセス確認を列挙したものではありません。同じソースモジュールで、プロセス識別情報、親プロセスの状態、経過時間、その他の安全条件も確認します。エントリーポイントが一致するだけでは終了対象になりません。
 

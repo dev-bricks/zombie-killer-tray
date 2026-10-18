@@ -247,12 +247,13 @@ El motor escribe los registros JSONL y los archivos de error del proceso de trab
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Lista permitida y reglas para los procesos candidatos
 
-Para ser candidato, el proceso debe coincidir con uno de los conjuntos de puntos de entrada definidos en [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26):
+Para ser candidato, el proceso debe coincidir con uno de los conjuntos de puntos de entrada definidos en [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34):
 
 - **Ejecutables de servidores de lenguaje (LSP):** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Puntos de entrada de Node.js:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
 - **Paquetes MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
 - **Módulos Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **Trabajos del planificador de Antigravity:** `language_server.exe` solo desde la ruta de instalación que termina en `/Antigravity/resources/bin/` y solo con los argumentos `multicall schedule`.
 
 Estos conjuntos definen los puntos de entrada que se comparan; no sustituyen las demás comprobaciones. En el mismo módulo fuente, el motor también verifica la identidad del proceso, el estado del proceso padre, la antigüedad y otras condiciones de seguridad. Coincidir con un punto de entrada no basta para que el proceso sea elegible.
 

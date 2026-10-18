@@ -247,12 +247,13 @@ python -m zombie_killer_tray scan
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. 许可名单与候选进程规则
 
-候选进程必须匹配 [`killer.py`](src/zombie_killer_tray/killer.py#L17-L26) 中定义的以下某一组入口：
+候选进程必须匹配 [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34) 中定义的以下某一组入口：
 
 - **LSP 可执行文件：** `rust-analyzer.exe`、`clangd.exe`、`gopls.exe`、`zls.exe`。
 - **Node.js 入口：** `typescript-language-server`、`pyright-langserver`、`yaml-language-server`、`bash-language-server`、`vscode-json-languageserver`。
 - **MCP 包：** `ellmos-filecommander-mcp`、`ellmos-codecommander-mcp`、`ellmos-controlcenter-mcp`、`ellmos-clatcher-mcp`、`ellmos-n8n-manager-mcp`、`n8n-manager-mcp`、`@modelcontextprotocol/server-filesystem`、`@modelcontextprotocol/server-memory`、`@modelcontextprotocol/server-sequential-thinking`、`@upstash/context7-mcp`。
 - **Python 模块：** `pylsp`、`jedi_language_server`、`mcp_server_git`、`mcp_server_fetch`、`mcp_server_time`。
+- **Antigravity 调度任务：** 仅限安装路径以 `/Antigravity/resources/bin/` 结尾的 `language_server.exe`，且参数为 `multicall schedule`。
 
 这些列表只规定入口匹配范围，不替代其他进程检查。模块还会在同一源码中检查进程身份、父进程状态、运行时间和其他安全条件。仅匹配入口并不足以使进程符合结束条件。
 
