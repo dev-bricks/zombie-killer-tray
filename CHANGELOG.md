@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Reserve the required observation gap separately from the eight-second scan
+  budget. A loaded machine could previously exhaust the shared deadline during
+  the second snapshot and skip an otherwise valid cleanup cycle. Incomplete
+  scans still abort before termination; process identity, parent-death and CPU
+  checks are unchanged.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
