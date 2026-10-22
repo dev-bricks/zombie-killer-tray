@@ -514,7 +514,11 @@ def audit(path, event):
 
 def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_cache=None,
           broker_min_idle=600, broker_idle_state=None):
-    deadline = time.monotonic() + 8
+    # Reserve the mandatory observation gap separately from the eight seconds
+    # of scan work. Charging the sleep to the work budget made the second
+    # snapshot time out under load even when both scans together fit in it.
+    # The wall-clock deadline still rejects stalled or incomplete samples.
+    deadline = time.monotonic() + 8 + interval
     # Cheap raw tables only, taken at the same two moments as the existing
     # snapshot() pair -- the (expensive, psutil-heavy) broker analysis is
     # deferred to the very end, see below.
@@ -558,7 +562,7 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
     # Broker detection runs LAST and is fully isolated from everything above:
     # it must never delay or affect the parent-dead reap loop (budget: its
     # psutil.Process(pid).cmdline()/.cwd() calls happen only now, after the
-    # loop already used what it needed of the 8s deadline), and a failure in
+    # loop already used what it needed of the scan deadline), and a failure in
     # it (e.g. a descendant vanishing mid-walk) must never abort a cycle that
     # has, by this point, already completed its real work.
     try:

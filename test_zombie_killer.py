@@ -142,9 +142,50 @@ class SafetyTests(unittest.TestCase):
             z.snapshot(self.api,deadline=0)
 
     def test_stalled_cycle_never_mutates(self):
-        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z.time,'monotonic',side_effect=[0,9]):
+        with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z.time,'monotonic',side_effect=[0,11]):
             self.assertEqual(z.cycle(self.api,apply=True),[])
         self.assertEqual(self.api.killed,[])
+
+    def test_observation_gap_does_not_consume_scan_budget(self):
+        clock = [0.0]
+
+        def slow_snapshot(api, deadline=None):
+            clock[0] += 3.5
+            if clock[0] > deadline:
+                raise TimeoutError('read-only process snapshot deadline exceeded')
+            return {self.r.pid: self.r}, {}
+
+        def observation_gap(seconds):
+            clock[0] += seconds
+
+        with patch.object(z, 'snapshot', side_effect=slow_snapshot), \
+                patch.object(z.time, 'sleep', side_effect=observation_gap), \
+                patch.object(z.time, 'monotonic', side_effect=lambda: clock[0]):
+            outcomes = z.cycle(self.api, apply=True)
+
+        self.assertEqual(clock[0], 9.0)  # Seven seconds of work plus the two-second gap.
+        self.assertEqual(len(outcomes), 1)
+        self.assertEqual(self.api.killed, ['pinned-handle'])
+
+    def test_scan_work_exceeding_budget_still_aborts_without_kill(self):
+        clock = [0.0]
+
+        def stalled_snapshot(api, deadline=None):
+            clock[0] += 4.5
+            if clock[0] > deadline:
+                raise TimeoutError('read-only process snapshot deadline exceeded')
+            return {self.r.pid: self.r}, {}
+
+        def observation_gap(seconds):
+            clock[0] += seconds
+
+        with patch.object(z, 'snapshot', side_effect=stalled_snapshot), \
+                patch.object(z.time, 'sleep', side_effect=observation_gap), \
+                patch.object(z.time, 'monotonic', side_effect=lambda: clock[0]), \
+                self.assertRaises(TimeoutError):
+            z.cycle(self.api, apply=True)
+
+        self.assertEqual(self.api.killed, [])
 
     def test_failed_audit_prevents_kill(self):
         with patch.object(z,'snapshot',return_value=({self.r.pid:self.r},{})), patch.object(z.time,'sleep'), patch.object(z,'audit',side_effect=OSError('disk')), self.assertRaises(OSError):
