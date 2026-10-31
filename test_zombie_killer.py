@@ -109,6 +109,180 @@ class SafetyTests(unittest.TestCase):
         self.assertEqual(z.classify(r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\bin\language_server.exe',
             ['language_server.exe','multicall','schedule','43 14 * * *']),'language-server')
 
+    def test_expanded_mcp_and_helper_classification(self):
+        # 1. npx .bin/.. normalized path for scoped & unscoped MCP packages
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'node',
+                r'C:\Users\x\AppData\Local\npm-cache\_npx\abc\node_modules\.bin\..\@googlemaps\code-assist-mcp\index.js',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'node',
+                r'C:\Users\x\AppData\Local\npm-cache\_npx\def\node_modules\.bin\..\chrome-devtools-mcp\build\src\bin\chrome-devtools-mcp.js',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'node',
+                r'C:\Users\x\AppData\Local\npm-cache\_npx\def\node_modules\chrome-devtools-mcp\build\src\telemetry\watchdog.js',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'node',
+                r'C:\Users\x\AppData\Roaming\npm\node_modules\ellmos-homebase-mcp\bin\ellmos-homebase.js',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'node',
+                r'C:\Users\x\AppData\Roaming\npm\node_modules\ellmos-servercommander-mcp\bin\ellmos-servercommander.js',
+            ]),
+            'mcp',
+        )
+        # 2. npx-cli.js and cmd.exe MCP wrappers
+        self.assertEqual(
+            z.classify('C:/Program Files/nodejs/node.exe', [
+                'C:\\Program Files\\nodejs\\node.exe',
+                r'C:\Program Files\nodejs\node_modules\npm\bin\npx-cli.js',
+                '-y',
+                '@googlemaps/code-assist-mcp@latest',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify(r'C:\WINDOWS\system32\cmd.exe', [
+                r'C:\WINDOWS\system32\cmd.exe', '/c', r'C:\Program Files\nodejs\npx.cmd', '-y', 'chrome-devtools-mcp@latest',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify(r'C:\WINDOWS\system32\cmd.exe', [
+                r'C:\WINDOWS\system32\cmd.exe', '/d', '/s', '/c',
+                r'"C:\Users\x\AppData\Local\npm-cache\_npx\abc\node_modules\.bin\code-assist-mcp.cmd"',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify(r'C:\WINDOWS\system32\cmd.exe', [
+                r'C:\WINDOWS\system32\cmd.exe', '/d', '/s', '/c', 'code-assist-mcp',
+            ]),
+            'mcp',
+        )
+        # 3. Python 3.12 exe & additional MCP modules (with -X utf8)
+        self.assertEqual(
+            z.classify(r'C:\Users\x\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python3.12.exe', [
+                'python', '-X', 'utf8', '-m', 'open_compute.mcp_server',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify('C:/Python312/python.exe', ['python.exe', '-m', 'markitdown_mcp']),
+            'mcp',
+        )
+        # 4. Antigravity sidecar MCP wrapper & binary
+        self.assertEqual(
+            z.classify(r'C:\WINDOWS\system32\cmd.exe', [
+                'cmd.exe', '/c',
+                r'C:\Users\x\AppData\Local\Programs\Antigravity\bin\agy-node.cmd',
+                '--import=file:///c:/Users/x/AppData/Local/Programs/Antigravity/resources/app/extensions/sidecar_sdk/register_loader.js',
+                r'C:\Users\x\.gemini\extensions\science\dist\biomolecular_viewer_mcp.cjs',
+            ]),
+            'mcp',
+        )
+        self.assertEqual(
+            z.classify(r'C:\Users\x\AppData\Local\Programs\Antigravity\Antigravity.exe', [
+                r'C:\Users\x\AppData\Local\Programs\Antigravity\Antigravity.exe',
+                '--import=file:///c:/Users/x/AppData/Local/Programs/Antigravity/resources/app/extensions/sidecar_sdk/register_loader.js',
+                r'C:\Users\x\.gemini\extensions\science\dist\biomolecular_viewer_mcp.cjs',
+            ]),
+            'mcp',
+        )
+        # 5. Orphaned PowerShell clipboard helper, Codex hook shell, and Codex rg.exe
+        self.assertEqual(
+            z.classify(r'C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe', [
+                'powershell.exe', '-NoProfile', '-NonInteractive', '-Command',
+                '[Console]::InputEncoding = [Text.Encoding]::UTF8; Set-Clipboard -Value ([Console]::In.ReadToEnd())',
+            ]),
+            'agent-helper',
+        )
+        self.assertEqual(
+            z.classify(r'C:\Program Files\PowerShell\7\pwsh.exe', [
+                'C:\\Program Files\\PowerShell\\7\\pwsh.exe', '-NoProfile', '-Command',
+                'python -X utf8 "C:/Users/x/.codex/hooks/python_exec_guard.py"',
+            ]),
+            'agent-helper',
+        )
+        self.assertEqual(
+            z.classify(r'C:\Config.Msi\16f20f00.rbf', [
+                'C:\\Program Files\\PowerShell\\7\\pwsh.exe', '-NoProfile', '-Command',
+                'python -X utf8 "C:/Users/x/.codex/hooks/python_exec_guard.py"',
+            ]),
+            'agent-helper',
+        )
+        self.assertEqual(
+            z.classify(
+                r'C:\Users\x\AppData\Roaming\npm\node_modules\@openai\codex\node_modules\@openai\codex-win32-x64\vendor\x86_64-pc-windows-msvc\path\codex-path\rg.exe',
+                ['rg.exe', '--files'],
+            ),
+            'agent-helper',
+        )
+
+    def test_snapshot_propagates_orphan_status_down_wrapper_chain_and_cycle_kills_top_down(self):
+        base_born = int((time.time() - 3600 + 11644473600) * 1e7)
+        # Dead root PID 50 -> cmd.exe (100) -> node npx-cli.js (200) -> node mcp (300)
+        proc_info = {
+            100: (50, 'cmd.exe', base_born, r'C:\WINDOWS\system32\cmd.exe',
+                  ['cmd.exe', '/c', r'C:\Program Files\nodejs\npx.cmd', '-y', 'chrome-devtools-mcp@latest']),
+            200: (100, 'node.exe', base_born + 10, r'C:\Program Files\nodejs\node.exe',
+                  ['node.exe', r'C:\Program Files\nodejs\node_modules\npm\bin\npx-cli.js', '-y', 'chrome-devtools-mcp@latest']),
+            300: (200, 'node.exe', base_born + 20, r'C:\Program Files\nodejs\node.exe',
+                  ['node.exe', r'C:\Users\x\AppData\Local\npm-cache\_npx\1\node_modules\.bin\..\chrome-devtools-mcp\build\src\bin\chrome-devtools-mcp.js']),
+        }
+        alive_pids = {100, 200, 300}
+        kill_order = []
+
+        class ChainAPI:
+            def process_table(self):
+                return [(pid, info[0], info[1]) for pid, info in proc_info.items() if pid in alive_pids]
+
+            def open(self, pid, terminate=False):
+                return pid if pid in alive_pids else 0
+
+            def close(self, h):
+                pass
+
+            def alive(self, h):
+                return h in alive_pids
+
+            def parent_dead(self, pid):
+                return pid not in alive_pids
+
+            def times(self, h):
+                return proc_info[h][2], 5
+
+            def image(self, h):
+                return proc_info[h][3]
+
+            def terminate(self, h):
+                kill_order.append(h)
+                alive_pids.discard(h)
+                return True
+
+        api = ChainAPI()
+        with patch.object(z.psutil, 'Process') as mock_proc, patch.object(z.time, 'sleep'):
+            mock_proc.side_effect = lambda pid: type('P', (), {'cmdline': lambda self: proc_info[pid][4]})()
+            outcomes = z.cycle(api, apply=True, min_age=60)
+        self.assertEqual(kill_order, [100, 200, 300])
+        self.assertEqual([o['child']['pid'] for o in outcomes], [100, 200, 300])
+        self.assertTrue(all(o['killed'] for o in outcomes))
+
     def test_snapshot_inspects_antigravity_language_server(self):
         self.api.process_table=lambda:[(self.r.pid,self.r.ppid,'language_server.exe')]
         self.api.image=lambda h:r'C:\Users\x\AppData\Local\Programs\Antigravity\resources\bin\language_server.exe'

@@ -5,11 +5,12 @@ import argparse
 import ctypes
 import json
 import os
+import posixpath
 import threading
 import time
 import traceback
 from ctypes import wintypes
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import psutil
@@ -27,11 +28,27 @@ NODE_ENTRIES = frozenset({'typescript-language-server', 'pyright-langserver',
     'yaml-language-server', 'bash-language-server', 'vscode-json-languageserver'})
 MCP_PACKAGES = frozenset({'ellmos-filecommander-mcp', 'ellmos-codecommander-mcp',
     'ellmos-controlcenter-mcp', 'ellmos-clatcher-mcp', 'ellmos-n8n-manager-mcp',
-    'n8n-manager-mcp',
+    'ellmos-homebase-mcp', 'ellmos-servercommander-mcp', 'n8n-manager-mcp',
+    'chrome-devtools-mcp', 'mcp-pdf-server', '@googlemaps/code-assist-mcp',
     '@modelcontextprotocol/server-filesystem', '@modelcontextprotocol/server-memory',
     '@modelcontextprotocol/server-sequential-thinking', '@upstash/context7-mcp'})
+MCP_SUFFIXES = frozenset({
+    'dist/index.js', 'build/index.js', 'dist/cli.js', 'build/cli.js', 'index.js',
+    'build/src/bin/chrome-devtools-mcp.js', 'build/src/telemetry/watchdog.js',
+    'bin/ellmos-homebase.js', 'bin/ellmos-servercommander.js'})
+MCP_BIN_SHIMS = frozenset({
+    'ellmos-filecommander.cmd', 'ellmos-codecommander.cmd', 'ellmos-controlcenter.cmd',
+    'ellmos-clatcher.cmd', 'ellmos-n8n-manager.cmd', 'ellmos-homebase.cmd',
+    'ellmos-servercommander.cmd', 'n8n-manager-mcp.cmd', 'chrome-devtools-mcp.cmd',
+    'mcp-pdf-server.cmd', 'code-assist-mcp.cmd', 'mcp-server-filesystem.cmd',
+    'mcp-server-memory.cmd', 'mcp-server-sequential-thinking.cmd', 'context7-mcp.cmd'})
+PYTHON_EXES = frozenset({
+    'python.exe', 'pythonw.exe', 'python3.exe', 'python3.12.exe', 'pythonw3.12.exe'})
 PYTHON_MODULES = frozenset({'pylsp', 'jedi_language_server', 'mcp_server_git',
-    'mcp_server_fetch', 'mcp_server_time'})
+    'mcp_server_fetch', 'mcp_server_time', 'open_compute.mcp_server',
+    'markitdown_mcp', 'homebase.server', 'servercommander.server'})
+SHELL_HELPERS = frozenset({
+    'cmd.exe', 'powershell.exe', 'pwsh.exe', 'rg.exe', 'antigravity.exe'})
 # Where local runtime state (audit log, worker-error log) is written.
 # Deliberately the CALLER's cwd, not this installed module's own directory
 # (T-20260926-212716751, packaging into src/zombie_killer_tray/): the tray
@@ -45,6 +62,16 @@ ROOT = Path.cwd()
 BROKER_REPORT_SAMPLES = 3  # must match track_broker_idle_streaks()'s default min_streak
 
 
+def _is_mcp_package_arg(arg: str) -> bool:
+    token = arg.strip().lower()
+    if token in MCP_PACKAGES:
+        return True
+    for pkg in MCP_PACKAGES:
+        if token.startswith(pkg + '@'):
+            return True
+    return False
+
+
 def classify(exe: str, argv: list[str]) -> str:
     """Only actual executable/module/first script argument counts, never free text."""
     name = Path(exe).name.lower()
@@ -54,14 +81,68 @@ def classify(exe: str, argv: list[str]) -> str:
         scheduler = (exe.replace('\\', '/').lower().endswith(ANTIGRAVITY_IMAGE)
                      and tuple(argv[1:3]) == ANTIGRAVITY_SCHEDULE)
         return 'language-server' if scheduler else ''
-    if name in {'python.exe', 'pythonw.exe', 'python3.exe'}:
-        if len(argv) >= 3 and argv[1] == '-m' and argv[2] in PYTHON_MODULES:
-            return 'language-server' if argv[2] in {'pylsp', 'jedi_language_server'} else 'mcp'
+    if name == 'antigravity.exe':
+        if (exe.replace('\\', '/').lower().endswith('/antigravity/antigravity.exe')
+                and len(argv) >= 2
+                and argv[1].replace('\\', '/').lower().startswith('--import=')
+                and '/sidecar_sdk/register_loader.js' in argv[1].replace('\\', '/').lower()):
+            return 'mcp'
+        return ''
+    if name == 'rg.exe':
+        exe_norm = exe.replace('\\', '/').lower()
+        if '/@openai/codex' in exe_norm and exe_norm.endswith('/codex-path/rg.exe'):
+            return 'agent-helper'
+        return ''
+    if name == 'cmd.exe':
+        if len(argv) < 3 or argv[1].lower() not in {'/c', '/d'}:
+            return ''
+        rest = [a.replace('\\', '/').lower() for a in argv[2:]]
+        joined = ' '.join(rest)
+        if '/antigravity/bin/agy-node.cmd' in joined and '/sidecar_sdk/register_loader.js' in joined:
+            return 'mcp'
+        if (any(a.endswith('/npx.cmd') or a in {'npx.cmd', 'npx'} for a in rest)
+                and any(_is_mcp_package_arg(a) for a in rest)):
+            return 'mcp'
+        if any(
+            a.rsplit('/', 1)[-1].rstrip('"').removesuffix('.cmd') + '.cmd' in MCP_BIN_SHIMS
+            and ('/node_modules/.bin/' in a or '/' not in a)
+            for a in rest
+        ):
+            return 'mcp'
+        return ''
+    if name == 'pwsh.exe' or (
+        name.endswith('.rbf')
+        and '/config.msi/' in exe.replace('\\', '/').lower()
+        and bool(argv)
+        and Path(argv[0]).name.lower() == 'pwsh.exe'
+    ):
+        joined = ' '.join(a.replace('\\', '/').lower() for a in argv[1:])
+        if '/.codex/hooks/' in joined and 'python_exec_guard.py' in joined:
+            return 'agent-helper'
+        return ''
+    if name == 'powershell.exe':
+        if (len(argv) >= 5
+                and argv[1].lower() == '-noprofile'
+                and argv[2].lower() == '-noninteractive'
+                and argv[3].lower() == '-command'
+                and 'set-clipboard -value ([console]::in.readtoend())' in argv[4].lower()):
+            return 'agent-helper'
+        return ''
+    if name in PYTHON_EXES:
+        idx = 1
+        while idx + 1 < len(argv) and argv[idx] == '-X':
+            idx += 2
+        if len(argv) > idx + 1 and argv[idx] == '-m' and argv[idx + 1] in PYTHON_MODULES:
+            return 'language-server' if argv[idx + 1] in {'pylsp', 'jedi_language_server'} else 'mcp'
         return ''
     if name != 'node.exe' or len(argv) < 2 or argv[1].startswith('-'):
         return ''
-    entry = argv[1].replace('\\', '/').lower()
     if not Path(argv[1]).is_absolute():
+        return ''
+    entry = posixpath.normpath(argv[1].replace('\\', '/')).lower()
+    if entry.endswith('/npm/bin/npx-cli.js'):
+        if any(_is_mcp_package_arg(a) for a in argv[2:]):
+            return 'mcp'
         return ''
     parts = entry.split('/')
     for i, part in enumerate(parts[:-1]):
@@ -74,8 +155,7 @@ def classify(exe: str, argv: list[str]) -> str:
             start += 1
         suffix = '/'.join(parts[start:])
         # Do not classify an arbitrary file merely located below a known package.
-        if package in MCP_PACKAGES and suffix in {
-            'dist/index.js', 'build/index.js', 'dist/cli.js', 'build/cli.js', 'index.js'}:
+        if package in MCP_PACKAGES and suffix in MCP_SUFFIXES:
             return 'mcp'
         if package in NODE_ENTRIES and suffix in {
             'lib/cli.mjs', 'lib/cli.js', 'out/cli.js', 'bin/pyright-langserver',
@@ -233,11 +313,35 @@ def snapshot(api, deadline=None):
     records = {}
     identities = {}
     table_started = time.time()
-    allowed_names = LSP | {ANTIGRAVITY_LS,'node.exe','python.exe','pythonw.exe','python3.exe'}
-    for pid,ppid,name in api.process_table():
+    core_names = LSP | {ANTIGRAVITY_LS, 'node.exe'} | PYTHON_EXES
+    has_image = hasattr(api, 'image')
+    allowed_names = core_names | (SHELL_HELPERS if has_image else frozenset())
+    rows = api.process_table()
+    parent_by_pid = {pid: ppid for pid, ppid, _ in rows}
+    name_by_pid = {pid: name.lower() for pid, _, name in rows}
+
+    def _shell_chain_maybe_orphaned(start_pid):
+        cur = start_pid
+        seen = set()
+        while cur > 0 and cur not in seen:
+            seen.add(cur)
+            p = parent_by_pid.get(cur)
+            if p is None or p <= 0:
+                return True
+            if p not in parent_by_pid:
+                return True
+            if name_by_pid.get(p, '') not in allowed_names:
+                return api.parent_dead(p)
+            cur = p
+        return False
+
+    for pid, ppid, name in rows:
         if deadline is not None and time.monotonic() > deadline:
             raise TimeoutError('read-only process snapshot deadline exceeded')
-        if name.lower() not in allowed_names:
+        low_name = name.lower()
+        if low_name not in allowed_names:
+            continue
+        if low_name in SHELL_HELPERS and not _shell_chain_maybe_orphaned(pid):
             continue
         try:
             h = api.open(pid)
@@ -272,6 +376,20 @@ def snapshot(api, deadline=None):
                 api.close(h)
         except (psutil.Error, OSError, ValueError):
             continue
+
+    # Propagate orphan status down verified target wrapper chains
+    # (e.g. dead parent -> cmd.exe -> npx-cli.js -> cmd.exe -> node MCP).
+    changed = True
+    while changed:
+        changed = False
+        for pid, r in list(records.items()):
+            if r.parent_dead:
+                continue
+            parent_rec = records.get(r.ppid)
+            if parent_rec is not None and parent_rec.parent_dead and parent_rec.born <= r.born:
+                records[pid] = replace(r, parent_dead=True)
+                changed = True
+
     return records, identities
 
 
@@ -529,7 +647,22 @@ def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_
     second, current = snapshot(api,deadline)
     cache = parent_cache if parent_cache is not None else {}
     outcomes = []
-    for pid, b in second.items():
+
+    def _chain_depth(rec):
+        depth = 0
+        cur = rec
+        seen = {rec.pid}
+        while cur.ppid in second and cur.ppid not in seen:
+            parent_rec = second[cur.ppid]
+            if parent_rec.born > cur.born:
+                break
+            seen.add(cur.ppid)
+            depth += 1
+            cur = parent_rec
+        return (depth, rec.born, rec.pid)
+
+    for b in sorted(second.values(), key=_chain_depth):
+        pid = b.pid
         if time.monotonic() > deadline:
             if audit_path:
                 audit(audit_path, {'event': 'cycle-deadline', 'apply': False})
