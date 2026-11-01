@@ -167,6 +167,8 @@ El proyecto cubre un flujo concreto: comprueba un conjunto configurado de proces
 - [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — candidato opcional de servidor MCP
 - [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — candidato opcional de servidor MCP
 - [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — candidato opcional de servidor MCP
+- [ellmos-homebase-mcp](https://github.com/ellmos-ai/ellmos-homebase-mcp) — candidato opcional de servidor MCP
+- [ellmos-servercommander-mcp](https://github.com/ellmos-ai/ellmos-servercommander-mcp) — candidato opcional de servidor MCP
 - [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — candidato opcional de servidor MCP
 - [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — candidato opcional de servidor MCP
 
@@ -247,13 +249,14 @@ El motor escribe los registros JSONL y los archivos de error del proceso de trab
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Lista permitida y reglas para los procesos candidatos
 
-Para ser candidato, el proceso debe coincidir con uno de los conjuntos de puntos de entrada definidos en [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34):
+Para ser candidato, el proceso debe coincidir con uno de los conjuntos de puntos de entrada definidos en [`killer.py`](src/zombie_killer_tray/killer.py#L17-L51):
 
 - **Ejecutables de servidores de lenguaje (LSP):** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Puntos de entrada de Node.js:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
-- **Paquetes MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
-- **Módulos Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **Paquetes MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `ellmos-homebase-mcp`, `ellmos-servercommander-mcp`, `n8n-manager-mcp`, `chrome-devtools-mcp`, `mcp-pdf-server`, `@googlemaps/code-assist-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
+- **Módulos Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`, `open_compute.mcp_server`, `markitdown_mcp`, `homebase.server`, `servercommander.server`.
 - **Trabajos del planificador de Antigravity:** `language_server.exe` solo desde la ruta de instalación que termina en `/Antigravity/resources/bin/` y solo con los argumentos `multicall schedule`.
+- **Envoltorios de shell y asistentes de agentes:** `cmd.exe`, `powershell.exe`, `pwsh.exe`, `rg.exe`, `antigravity.exe` (evaluados únicamente dentro de cadenas de herramientas y envoltorios huérfanos verificados).
 
 Estos conjuntos definen los puntos de entrada que se comparan; no sustituyen las demás comprobaciones. En el mismo módulo fuente, el motor también verifica la identidad del proceso, el estado del proceso padre, la antigüedad y otras condiciones de seguridad. Coincidir con un punto de entrada no basta para que el proceso sea elegible.
 

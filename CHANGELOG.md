@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Synchronized repository discoverability topics with pyproject.toml 20 keywords (added `process-cleanup`).
+- Updated Section 7 (Related Projects) and Section 12 (Allowlist & Candidate Rules) across all six language READMEs (`README.md`, `README_de.md`, `README_es.md`, `README_zh.md`, `README_ja.md`, `README_ru.md`) to document expanded MCP packages (`ellmos-homebase-mcp`, `ellmos-servercommander-mcp`, `chrome-devtools-mcp`, `mcp-pdf-server`, `@googlemaps/code-assist-mcp`), Python modules (`open_compute.mcp_server`, `markitdown_mcp`, `homebase.server`, `servercommander.server`), and shell wrapper/agent helper processes (`cmd.exe`, `powershell.exe`, `pwsh.exe`, `rg.exe`, `antigravity.exe`).
 - Replaced overstated process-safety, network, audit, support, and license claims with descriptions scoped to source behavior and the listed direct dependencies.
 - Added six-language tray documentation and a bilingual contributor guide with reproducible local checks.
 - Removed the internal marketing log from tracked package and repository metadata while retaining it locally as an ignored file.
