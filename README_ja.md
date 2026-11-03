@@ -167,6 +167,8 @@ sequenceDiagram
 - [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — 任意の MCP サーバー候補
 - [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — 任意の MCP サーバー候補
 - [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — 任意の MCP サーバー候補
+- [ellmos-homebase-mcp](https://github.com/ellmos-ai/ellmos-homebase-mcp) — 任意の MCP サーバー候補
+- [ellmos-servercommander-mcp](https://github.com/ellmos-ai/ellmos-servercommander-mcp) — 任意の MCP サーバー候補
 - [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — 任意の MCP サーバー候補
 - [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — 任意の MCP サーバー候補
 
@@ -247,13 +249,14 @@ python -m zombie_killer_tray scan
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. 許可リストと候補プロセスの条件
 
-候補は [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34) に定義された次のエントリーポイント群のいずれかに一致する必要があります。
+候補は [`killer.py`](src/zombie_killer_tray/killer.py#L17-L51) に定義された次のエントリーポイント群のいずれかに一致する必要があります。
 
 - **LSP 実行ファイル：** `rust-analyzer.exe`、`clangd.exe`、`gopls.exe`、`zls.exe`。
 - **Node.js エントリーポイント：** `typescript-language-server`、`pyright-langserver`、`yaml-language-server`、`bash-language-server`、`vscode-json-languageserver`。
-- **MCP パッケージ：** `ellmos-filecommander-mcp`、`ellmos-codecommander-mcp`、`ellmos-controlcenter-mcp`、`ellmos-clatcher-mcp`、`ellmos-n8n-manager-mcp`、`n8n-manager-mcp`、`@modelcontextprotocol/server-filesystem`、`@modelcontextprotocol/server-memory`、`@modelcontextprotocol/server-sequential-thinking`、`@upstash/context7-mcp`。
-- **Python モジュール：** `pylsp`、`jedi_language_server`、`mcp_server_git`、`mcp_server_fetch`、`mcp_server_time`。
+- **MCP パッケージ：** `ellmos-filecommander-mcp`、`ellmos-codecommander-mcp`、`ellmos-controlcenter-mcp`、`ellmos-clatcher-mcp`、`ellmos-n8n-manager-mcp`、`ellmos-homebase-mcp`、`ellmos-servercommander-mcp`、`n8n-manager-mcp`、`chrome-devtools-mcp`、`mcp-pdf-server`、`@googlemaps/code-assist-mcp`、`@modelcontextprotocol/server-filesystem`、`@modelcontextprotocol/server-memory`、`@modelcontextprotocol/server-sequential-thinking`、`@upstash/context7-mcp`。
+- **Python モジュール：** `pylsp`、`jedi_language_server`、`mcp_server_git`、`mcp_server_fetch`、`mcp_server_time`、`open_compute.mcp_server`、`markitdown_mcp`、`homebase.server`、`servercommander.server`。
 - **Antigravity スケジューラジョブ：** `/Antigravity/resources/bin/` で終わるインストールパスの `language_server.exe` のみ、かつ引数が `multicall schedule` の場合のみ。
+- **シェルラッパーおよびエージェントヘルパー：** `cmd.exe`、`powershell.exe`、`pwsh.exe`、`rg.exe`、`antigravity.exe`（検証済みの孤立ツールチェーンおよびラッパープロセス内でのみ評価）。
 
 この一覧は照合対象のエントリーポイントを示すもので、すべてのプロセス確認を列挙したものではありません。同じソースモジュールで、プロセス識別情報、親プロセスの状態、経過時間、その他の安全条件も確認します。エントリーポイントが一致するだけでは終了対象になりません。
 

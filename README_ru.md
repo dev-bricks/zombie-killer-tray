@@ -167,6 +167,8 @@ sequenceDiagram
 - [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — необязательный кандидат MCP-сервера
 - [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — необязательный кандидат MCP-сервера
 - [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — необязательный кандидат MCP-сервера
+- [ellmos-homebase-mcp](https://github.com/ellmos-ai/ellmos-homebase-mcp) — необязательный кандидат MCP-сервера
+- [ellmos-servercommander-mcp](https://github.com/ellmos-ai/ellmos-servercommander-mcp) — необязательный кандидат MCP-сервера
 - [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — необязательный кандидат MCP-сервера
 - [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — необязательный кандидат MCP-сервера
 
@@ -247,13 +249,14 @@ python -m zombie_killer_tray scan
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Список разрешённых точек входа и правила отбора процессов
 
-Процесс-кандидат должен соответствовать одной из групп точек входа, определённых в [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34):
+Процесс-кандидат должен соответствовать одной из групп точек входа, определённых в [`killer.py`](src/zombie_killer_tray/killer.py#L17-L51):
 
 - **Исполняемые файлы LSP:** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Точки входа Node.js:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
-- **Пакеты MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
-- **Модули Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **Пакеты MCP:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `ellmos-homebase-mcp`, `ellmos-servercommander-mcp`, `n8n-manager-mcp`, `chrome-devtools-mcp`, `mcp-pdf-server`, `@googlemaps/code-assist-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
+- **Модули Python:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`, `open_compute.mcp_server`, `markitdown_mcp`, `homebase.server`, `servercommander.server`.
 - **Задания планировщика Antigravity:** `language_server.exe` только из пути установки, заканчивающегося на `/Antigravity/resources/bin/`, и только с аргументами `multicall schedule`.
+- **Оболочки-обёртки и вспомогательные процессы агентов:** `cmd.exe`, `powershell.exe`, `pwsh.exe`, `rg.exe`, `antigravity.exe` (оцениваются исключительно в рамках проверенных изолированных цепочек инструментов и обёрток).
 
 Эти группы описывают точки входа для отбора, а не все проверки процессов. В том же исходном модуле дополнительно проверяются идентификатор процесса, состояние родительского процесса, возраст и другие условия безопасности. Совпадения с точкой входа недостаточно, чтобы процесс стал подходящим кандидатом.
 

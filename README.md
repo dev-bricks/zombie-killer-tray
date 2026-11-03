@@ -168,6 +168,8 @@ This project covers one narrow workflow: checking a configured set of Windows MC
 - [ellmos-filecommander-mcp](https://github.com/ellmos-ai/ellmos-filecommander-mcp) — optional MCP server candidate
 - [ellmos-codecommander-mcp](https://github.com/ellmos-ai/ellmos-codecommander-mcp) — optional MCP server candidate
 - [ellmos-controlcenter-mcp](https://github.com/ellmos-ai/ellmos-controlcenter-mcp) — optional MCP server candidate
+- [ellmos-homebase-mcp](https://github.com/ellmos-ai/ellmos-homebase-mcp) — optional MCP server candidate
+- [ellmos-servercommander-mcp](https://github.com/ellmos-ai/ellmos-servercommander-mcp) — optional MCP server candidate
 - [n8n-manager-mcp](https://github.com/ellmos-ai/n8n-manager-mcp) — optional MCP server candidate
 - [ellmos-clatcher-mcp](https://github.com/ellmos-ai/ellmos-clatcher-mcp) — optional MCP server candidate
 
@@ -248,13 +250,14 @@ The engine writes its JSONL audit and worker-error files in the process current 
 <a id="sec-12"></a><a id="allowlist-configuration--reaping-rules"></a><a id="allowlist-konfiguration--reaping-regeln"></a>
 ## 12. Allowlist & Candidate Rules
 
-Candidates must match one of the source-defined entrypoint sets in [`killer.py`](src/zombie_killer_tray/killer.py#L17-L34):
+Candidates must match one of the source-defined entrypoint sets in [`killer.py`](src/zombie_killer_tray/killer.py#L17-L51):
 
 - **LSP executables:** `rust-analyzer.exe`, `clangd.exe`, `gopls.exe`, `zls.exe`.
 - **Node entrypoints:** `typescript-language-server`, `pyright-langserver`, `yaml-language-server`, `bash-language-server`, `vscode-json-languageserver`.
-- **MCP packages:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `n8n-manager-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
-- **Python modules:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`.
+- **MCP packages:** `ellmos-filecommander-mcp`, `ellmos-codecommander-mcp`, `ellmos-controlcenter-mcp`, `ellmos-clatcher-mcp`, `ellmos-n8n-manager-mcp`, `ellmos-homebase-mcp`, `ellmos-servercommander-mcp`, `n8n-manager-mcp`, `chrome-devtools-mcp`, `mcp-pdf-server`, `@googlemaps/code-assist-mcp`, `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-memory`, `@modelcontextprotocol/server-sequential-thinking`, `@upstash/context7-mcp`.
+- **Python modules:** `pylsp`, `jedi_language_server`, `mcp_server_git`, `mcp_server_fetch`, `mcp_server_time`, `open_compute.mcp_server`, `markitdown_mcp`, `homebase.server`, `servercommander.server`.
 - **Antigravity scheduler jobs:** `language_server.exe` only from the install path ending in `/Antigravity/resources/bin/` and only with the arguments `multicall schedule`.
+- **Shell wrappers and agent helpers:** `cmd.exe`, `powershell.exe`, `pwsh.exe`, `rg.exe`, `antigravity.exe` (evaluated only within verified orphaned tool chains and wrapper processes).
 
 These sets describe matching entrypoints, not every process check. The engine also checks process identity, parent state, process age, and other safety conditions in the same source module. A matching entrypoint alone does not make a process eligible.
 
