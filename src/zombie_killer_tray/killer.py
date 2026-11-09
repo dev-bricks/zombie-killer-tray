@@ -630,13 +630,27 @@ def audit(path, event):
         f.write(json.dumps({'at': time.time(), **event}, ensure_ascii=False) + '\n')
 
 
+DEFAULT_SCAN_BUDGET = 15.0
+
+
 def cycle(api, apply=False, interval=2.0, min_age=1800, audit_path=None, parent_cache=None,
-          broker_min_idle=600, broker_idle_state=None):
-    # Reserve the mandatory observation gap separately from the eight seconds
-    # of scan work. Charging the sleep to the work budget made the second
-    # snapshot time out under load even when both scans together fit in it.
-    # The wall-clock deadline still rejects stalled or incomplete samples.
-    deadline = time.monotonic() + 8 + interval
+          broker_min_idle=600, broker_idle_state=None, scan_budget=None):
+    # Reserve the mandatory observation gap separately from the scan work
+    # budget (default 15.0s, configurable via scan_budget parameter or
+    # ZOMBIE_SCAN_BUDGET environment variable). Charging the sleep to the work
+    # budget made the second snapshot time out under load even when both scans
+    # together fit in it. The wall-clock deadline still rejects stalled or
+    # incomplete samples.
+    if scan_budget is None:
+        raw_env = os.environ.get('ZOMBIE_SCAN_BUDGET')
+        if raw_env:
+            try:
+                scan_budget = float(raw_env)
+            except (ValueError, TypeError):
+                scan_budget = DEFAULT_SCAN_BUDGET
+        else:
+            scan_budget = DEFAULT_SCAN_BUDGET
+    deadline = time.monotonic() + scan_budget + interval
     # Cheap raw tables only, taken at the same two moments as the existing
     # snapshot() pair -- the (expensive, psutil-heavy) broker analysis is
     # deferred to the very end, see below.
@@ -728,6 +742,8 @@ def main():
     parser.add_argument('--interval', type=float, default=10)
     parser.add_argument('--min-age', type=float, default=1800)
     parser.add_argument('--broker-min-idle', type=float, default=600)
+    parser.add_argument('--scan-budget', type=float, default=None,
+                        help='work budget in seconds for process snapshot scans (default: 15.0, env ZOMBIE_SCAN_BUDGET)')
     parser.add_argument('--parent-pid', type=int)
     args = parser.parse_args()
     if args.action in ('scan', 'reap', 'watch') and (args.min_age < 30 or args.interval < 3):
@@ -778,6 +794,7 @@ def main():
             outcomes = cycle(api, apply=args.action != 'scan' and args.yes,
                 min_age=args.min_age, parent_cache=cache,
                 broker_min_idle=args.broker_min_idle, broker_idle_state=broker_state,
+                scan_budget=args.scan_budget,
                 audit_path=ROOT / 'zombie_events.jsonl')
             event = {'cycle_at': time.time(), 'apply': args.yes, 'count': len(outcomes)}
             audit(ROOT / 'zombie_events.jsonl', event)

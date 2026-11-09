@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Fixed
+- Increased default snapshot scan work budget from 8 to 15 seconds to prevent
+  `read-only process snapshot deadline exceeded` timeouts under high CPU load
+  (T-20261107-282816335), and made the budget configurable via `scan_budget`
+  parameter, `--scan-budget` CLI argument, and `ZOMBIE_SCAN_BUDGET` environment
+  variable.
 - Reserve the required observation gap separately from the eight-second scan
   budget. A loaded machine could previously exhaust the shared deadline during
   the second snapshot and skip an otherwise valid cleanup cycle. Incomplete
