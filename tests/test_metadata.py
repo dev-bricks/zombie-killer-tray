@@ -37,6 +37,8 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("timeout-minutes: 15", tests_text)
         self.assertIn("cancel-in-progress: true", tests_text)
         self.assertIn("pytest", tests_text)
+        self.assertIn('python-version: ["3.12", "3.13"]', tests_text)
+        self.assertIn("matrix.python-version", tests_text)
 
         stale_yml = workflows / "stale.yml"
         self.assertTrue(stale_yml.is_file(), "stale.yml must exist")
@@ -61,6 +63,7 @@ class MetadataContractTests(unittest.TestCase):
         self.assertIn("timeout-minutes: 5", auto_assign_text)
         self.assertIn("cancel-in-progress: true", auto_assign_text)
         self.assertIn("pull-requests: write", auto_assign_text)
+        self.assertIn("github.event.pull_request.user.type != 'Bot'", auto_assign_text)
 
         label_sync_yml = workflows / "label-sync.yml"
         self.assertTrue(label_sync_yml.is_file(), "label-sync.yml must exist")
@@ -128,6 +131,13 @@ class MetadataContractTests(unittest.TestCase):
         # Rule T-20260920-167562623: Pfad A/B fasst NIE die Versionsnummer an
         self.assertEqual(project.get("version"), "0.1.0", "Version 0.1.0 must remain frozen")
         self.assertIn("psutil>=7.2,<8", project.get("dependencies", []))
+        # PEP 639 SPDX string license and no deprecated license classifiers
+        self.assertEqual(project.get("license"), "MIT", "Must declare PEP 639 SPDX license string")
+        for classifier in project.get("classifiers", []):
+            self.assertFalse(
+                classifier.startswith("License ::"),
+                f"PEP 639 forbids License classifier when license is SPDX string: {classifier}",
+            )
 
         license_files = project.get("license-files", [])
         self.assertIn("LICENSE", license_files)
